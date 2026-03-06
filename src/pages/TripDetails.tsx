@@ -1,7 +1,8 @@
 import React from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { MapPin, Calendar, Clock, Users, User, Car, ArrowLeft, Shield } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { MapPin, Calendar, Clock, Users, User, Car, ArrowLeft, Shield, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -17,6 +18,8 @@ const tripData: Record<string, any> = {
 const TripDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const trip = id ? tripData[id] : null;
 
   if (!trip) {
@@ -28,6 +31,11 @@ const TripDetails: React.FC = () => {
   }
 
   const handleBook = () => {
+    if (!user) {
+      toast.info(t("login") + " required");
+      navigate("/login");
+      return;
+    }
     toast.success("Booking request sent! (Demo mode)");
   };
 
