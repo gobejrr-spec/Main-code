@@ -1,15 +1,18 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { Globe, Menu, X, Bus } from "lucide-react";
+import { Globe, Menu, X, Bus, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const Navbar: React.FC = () => {
   const { t, language, setLanguage } = useLanguage();
   const { user, profile, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const isLanding = location.pathname === "/";
 
   const getDashboardPath = () => {
     if (!profile) return "/";
@@ -20,42 +23,90 @@ const Navbar: React.FC = () => {
     }
   };
 
+  const navLinkClass = `text-sm font-medium transition-colors duration-200 ${
+    isLanding
+      ? "text-primary-foreground/80 hover:text-primary-foreground"
+      : "text-foreground/70 hover:text-foreground"
+  }`;
+
   return (
-    <nav className="sticky top-0 z-50 bg-card/90 backdrop-blur-xl border-b border-border">
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      isLanding
+        ? "bg-foreground/10 backdrop-blur-xl border-b border-primary-foreground/10"
+        : "bg-card/90 backdrop-blur-xl border-b border-border shadow-sm"
+    }`}>
       <div className="container mx-auto px-4 flex items-center justify-between h-16">
-        <Link to="/" className="flex items-center gap-2 font-heading text-xl font-bold text-primary">
-          <Bus className="h-6 w-6" />
+        <Link to="/" className={`flex items-center gap-2.5 font-heading text-xl font-bold ${
+          isLanding ? "text-primary-foreground" : "text-primary"
+        }`}>
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+            <Bus className="h-4.5 w-4.5 text-primary-foreground" />
+          </div>
           Rural Transport
         </Link>
 
         {/* Desktop */}
-        <div className="hidden md:flex items-center gap-6">
-          <Link to="/" className="text-sm font-medium text-foreground hover:text-primary transition-colors">{t("home")}</Link>
-          <Link to="/trips" className="text-sm font-medium text-foreground hover:text-primary transition-colors">{t("searchTrips")}</Link>
+        <div className="hidden md:flex items-center gap-1">
+          <Link to="/" className={`${navLinkClass} px-3 py-2 rounded-lg`}>{t("home")}</Link>
+          <Link to="/trips" className={`${navLinkClass} px-3 py-2 rounded-lg`}>{t("searchTrips")}</Link>
 
           <button
             onClick={() => setLanguage(language === "en" ? "mn" : "en")}
-            className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              isLanding ? "text-primary-foreground/70 hover:text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+            }`}
           >
             <Globe className="h-4 w-4" />
             {language === "en" ? "MN" : "EN"}
           </button>
 
+          <div className="w-px h-6 bg-border/30 mx-2" />
+
           {user ? (
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="sm" onClick={() => navigate(getDashboardPath())}>
+            <div className="flex items-center gap-2">
+              {profile?.role === "admin" && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate("/admin")}
+                  className={isLanding ? "text-primary-foreground hover:bg-primary-foreground/10" : ""}
+                >
+                  <Shield className="mr-1.5 h-4 w-4" />
+                  Admin
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate(getDashboardPath())}
+                className={isLanding ? "text-primary-foreground hover:bg-primary-foreground/10" : ""}
+              >
                 {t("dashboard")}
               </Button>
-              <Button variant="outline" size="sm" onClick={logout}>
+              <Button
+                variant={isLanding ? "outline" : "outline"}
+                size="sm"
+                onClick={logout}
+                className={isLanding ? "border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10" : ""}
+              >
                 {t("logout")}
               </Button>
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={() => navigate("/login")}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/login")}
+                className={isLanding ? "text-primary-foreground hover:bg-primary-foreground/10" : ""}
+              >
                 {t("login")}
               </Button>
-              <Button size="sm" onClick={() => navigate("/register")}>
+              <Button
+                size="sm"
+                onClick={() => navigate("/register")}
+                className={isLanding ? "glow-primary" : ""}
+              >
                 {t("register")}
               </Button>
             </div>
@@ -63,34 +114,44 @@ const Navbar: React.FC = () => {
         </div>
 
         {/* Mobile toggle */}
-        <button className="md:hidden text-foreground" onClick={() => setMobileOpen(!mobileOpen)}>
+        <button
+          className={`md:hidden ${isLanding ? "text-primary-foreground" : "text-foreground"}`}
+          onClick={() => setMobileOpen(!mobileOpen)}
+        >
           {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-border bg-card px-4 py-4 space-y-3 animate-fade-in">
-          <Link to="/" className="block text-sm font-medium" onClick={() => setMobileOpen(false)}>{t("home")}</Link>
-          <Link to="/trips" className="block text-sm font-medium" onClick={() => setMobileOpen(false)}>{t("searchTrips")}</Link>
+        <div className="md:hidden bg-card border-t border-border px-4 py-5 space-y-3 animate-fade-in shadow-lg">
+          <Link to="/" className="block text-sm font-medium py-2" onClick={() => setMobileOpen(false)}>{t("home")}</Link>
+          <Link to="/trips" className="block text-sm font-medium py-2" onClick={() => setMobileOpen(false)}>{t("searchTrips")}</Link>
           <button
             onClick={() => { setLanguage(language === "en" ? "mn" : "en"); setMobileOpen(false); }}
-            className="flex items-center gap-1.5 text-sm text-muted-foreground"
+            className="flex items-center gap-1.5 text-sm text-muted-foreground py-2"
           >
             <Globe className="h-4 w-4" />
             {language === "en" ? "Монгол" : "English"}
           </button>
-          {user ? (
-            <>
-              <Link to={getDashboardPath()} className="block text-sm font-medium" onClick={() => setMobileOpen(false)}>{t("dashboard")}</Link>
-              <button onClick={() => { logout(); setMobileOpen(false); }} className="text-sm text-destructive">{t("logout")}</button>
-            </>
-          ) : (
-            <>
-              <Link to="/login" className="block text-sm font-medium" onClick={() => setMobileOpen(false)}>{t("login")}</Link>
-              <Link to="/register" className="block text-sm font-medium text-primary" onClick={() => setMobileOpen(false)}>{t("register")}</Link>
-            </>
-          )}
+          <div className="border-t border-border pt-3">
+            {user ? (
+              <>
+                {profile?.role === "admin" && (
+                  <Link to="/admin" className="flex items-center gap-2 text-sm font-medium text-primary py-2" onClick={() => setMobileOpen(false)}>
+                    <Shield className="h-4 w-4" /> Admin Panel
+                  </Link>
+                )}
+                <Link to={getDashboardPath()} className="block text-sm font-medium py-2" onClick={() => setMobileOpen(false)}>{t("dashboard")}</Link>
+                <button onClick={() => { logout(); setMobileOpen(false); }} className="text-sm text-destructive py-2">{t("logout")}</button>
+              </>
+            ) : (
+              <div className="flex gap-3">
+                <Button variant="outline" size="sm" className="flex-1" onClick={() => { navigate("/login"); setMobileOpen(false); }}>{t("login")}</Button>
+                <Button size="sm" className="flex-1" onClick={() => { navigate("/register"); setMobileOpen(false); }}>{t("register")}</Button>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </nav>

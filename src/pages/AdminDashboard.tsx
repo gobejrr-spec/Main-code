@@ -4,7 +4,10 @@ import {
   collection, query, where, getDocs, doc, updateDoc, deleteDoc, getCountFromServer,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Users, Car, MapPin, CheckCircle, Shield, AlertTriangle, MessageSquare, Loader2, Trash2 } from "lucide-react";
+import {
+  Users, Car, MapPin, CheckCircle, Shield, AlertTriangle, MessageSquare,
+  Loader2, Trash2, TrendingUp, Eye, Clock
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -43,11 +46,11 @@ const AdminDashboard: React.FC = () => {
   const [pendingTrips, setPendingTrips] = useState<PendingTrip[]>([]);
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"drivers" | "trips" | "complaints">("drivers");
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      // Fetch stats
       const [usersSnap, driversSnap, tripsSnap, completedSnap] = await Promise.all([
         getCountFromServer(collection(db, "users")),
         getCountFromServer(collection(db, "drivers")),
@@ -61,7 +64,6 @@ const AdminDashboard: React.FC = () => {
         completed: completedSnap.data().count,
       });
 
-      // Fetch pending drivers
       const driversQuery = query(collection(db, "drivers"), where("verificationStatus", "==", "pending"));
       const driversSnapshot = await getDocs(driversQuery);
       const driversList: PendingDriver[] = [];
@@ -70,47 +72,32 @@ const AdminDashboard: React.FC = () => {
         let userName = "";
         let userPhone = "";
         try {
-          const userSnap = await getDocs(query(collection(db, "users")));
+          const userSnap = await getDocs(collection(db, "users"));
           const userDoc = userSnap.docs.find((u) => u.id === driverData.userId);
           if (userDoc) {
             userName = userDoc.data().name || "";
             userPhone = userDoc.data().phone || "";
           }
         } catch {}
-        driversList.push({
-          id: driverDoc.id,
-          userId: driverData.userId,
-          verificationStatus: driverData.verificationStatus,
-          userName,
-          userPhone,
-        });
+        driversList.push({ id: driverDoc.id, userId: driverData.userId, verificationStatus: driverData.verificationStatus, userName, userPhone });
       }
       setPendingDrivers(driversList);
 
-      // Fetch pending trips
       const tripsQuery = query(collection(db, "trips"), where("status", "==", "pending"));
       const tripsSnapshot = await getDocs(tripsQuery);
-      setPendingTrips(
-        tripsSnapshot.docs.map((d) => ({ id: d.id, ...d.data() } as PendingTrip))
-      );
+      setPendingTrips(tripsSnapshot.docs.map((d) => ({ id: d.id, ...d.data() } as PendingTrip)));
 
-      // Fetch complaints
       const complaintsSnapshot = await getDocs(collection(db, "complaints"));
       const complaintsList: Complaint[] = [];
       for (const cDoc of complaintsSnapshot.docs) {
         const cData = cDoc.data();
         let userName = "";
         try {
-          const userSnap = await getDocs(query(collection(db, "users")));
+          const userSnap = await getDocs(collection(db, "users"));
           const userDoc = userSnap.docs.find((u) => u.id === cData.userId);
           if (userDoc) userName = userDoc.data().name || "";
         } catch {}
-        complaintsList.push({
-          id: cDoc.id,
-          userName,
-          message: cData.message,
-          createdAt: cData.createdAt,
-        });
+        complaintsList.push({ id: cDoc.id, userName, message: cData.message, createdAt: cData.createdAt });
       }
       setComplaints(complaintsList);
     } catch (err) {
@@ -120,9 +107,7 @@ const AdminDashboard: React.FC = () => {
     }
   }, []);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleDriverAction = async (driverId: string, status: "approved" | "rejected") => {
     setActionLoading(driverId);
@@ -133,9 +118,7 @@ const AdminDashboard: React.FC = () => {
     } catch (err) {
       console.error(err);
       toast.error("Action failed");
-    } finally {
-      setActionLoading(null);
-    }
+    } finally { setActionLoading(null); }
   };
 
   const handleTripAction = async (tripId: string, status: "approved" | "rejected") => {
@@ -147,9 +130,7 @@ const AdminDashboard: React.FC = () => {
     } catch (err) {
       console.error(err);
       toast.error("Action failed");
-    } finally {
-      setActionLoading(null);
-    }
+    } finally { setActionLoading(null); }
   };
 
   const handleDeleteComplaint = async (complaintId: string) => {
@@ -161,156 +142,216 @@ const AdminDashboard: React.FC = () => {
     } catch (err) {
       console.error(err);
       toast.error("Delete failed");
-    } finally {
-      setActionLoading(null);
-    }
+    } finally { setActionLoading(null); }
   };
 
   const statCards = [
-    { icon: Users, label: t("totalUsers"), value: stats.users, color: "text-primary" },
-    { icon: Car, label: t("totalDrivers"), value: stats.drivers, color: "text-secondary" },
-    { icon: MapPin, label: t("totalTrips"), value: stats.trips, color: "text-accent" },
-    { icon: CheckCircle, label: t("completedTrips"), value: stats.completed, color: "text-success" },
+    { icon: Users, label: t("totalUsers"), value: stats.users, color: "from-primary to-primary-glow", trend: "+12%" },
+    { icon: Car, label: t("totalDrivers"), value: stats.drivers, color: "from-secondary to-warning", trend: "+8%" },
+    { icon: MapPin, label: t("totalTrips"), value: stats.trips, color: "from-accent to-success", trend: "+24%" },
+    { icon: CheckCircle, label: t("completedTrips"), value: stats.completed, color: "from-success to-accent", trend: "+18%" },
+  ];
+
+  const tabs = [
+    { key: "drivers" as const, label: t("manageDrivers"), icon: Shield, count: pendingDrivers.length },
+    { key: "trips" as const, label: t("manageTrips"), icon: MapPin, count: pendingTrips.length },
+    { key: "complaints" as const, label: t("manageComplaints"), icon: MessageSquare, count: complaints.length },
   ];
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen flex flex-col items-center justify-center pt-16">
+        <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+        <p className="text-muted-foreground">{t("loading")}</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background py-8">
+    <div className="min-h-screen bg-background pt-20 pb-10">
       <div className="container mx-auto px-4 max-w-6xl">
-        <h1 className="font-heading text-2xl font-bold mb-1">Admin {t("dashboard")}</h1>
-        <p className="text-sm text-muted-foreground mb-8">Manage platform operations</p>
+        {/* Header */}
+        <div className="mb-10 animate-fade-in">
+          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary text-xs font-semibold px-3 py-1 rounded-full mb-3">
+            <Shield className="h-3 w-3" /> ADMIN PANEL
+          </div>
+          <h1 className="font-heading text-3xl md:text-4xl font-bold">
+            {t("dashboard")}
+          </h1>
+          <p className="text-muted-foreground mt-1">Manage platform operations</p>
+        </div>
 
         {/* Stats */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10 animate-stagger">
           {statCards.map((stat, i) => (
-            <div key={i} className="glass-card rounded-xl p-5">
-              <div className="flex items-center justify-between mb-2">
-                <stat.icon className={`h-5 w-5 ${stat.color}`} />
+            <div key={i} className="glass-card-elevated rounded-2xl p-6 hover-lift group">
+              <div className="flex items-center justify-between mb-4">
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-500`}>
+                  <stat.icon className="h-6 w-6 text-primary-foreground" />
+                </div>
+                <div className="flex items-center gap-1 text-xs text-success font-medium bg-success/10 px-2 py-1 rounded-full">
+                  <TrendingUp className="h-3 w-3" /> {stat.trend}
+                </div>
               </div>
-              <p className="font-heading text-2xl font-bold">{stat.value}</p>
-              <p className="text-xs text-muted-foreground">{stat.label}</p>
+              <p className="font-heading text-3xl font-bold">{stat.value}</p>
+              <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
             </div>
           ))}
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-6">
-          {/* Driver Verification */}
-          <div className="glass-card rounded-xl p-6">
-            <h2 className="font-heading font-semibold text-lg mb-4 flex items-center gap-2">
-              <Shield className="h-5 w-5 text-primary" /> {t("manageDrivers")}
-            </h2>
-            {pendingDrivers.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">{t("noResults")}</p>
-            ) : (
-              <div className="space-y-3">
-                {pendingDrivers.map((d) => (
-                  <div key={d.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                    <div>
-                      <p className="text-sm font-medium">{d.userName || d.userId}</p>
-                      <p className="text-xs text-muted-foreground">{d.userPhone}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        disabled={actionLoading === d.id}
-                        onClick={() => handleDriverAction(d.id, "approved")}
-                      >
-                        {actionLoading === d.id ? <Loader2 className="h-3 w-3 animate-spin" /> : t("approve")}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={actionLoading === d.id}
-                        onClick={() => handleDriverAction(d.id, "rejected")}
-                      >
-                        {t("reject")}
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+        {/* Tabs */}
+        <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2 animate-fade-in" style={{ animationDelay: "200ms" }}>
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium transition-all duration-300 whitespace-nowrap ${
+                activeTab === tab.key
+                  ? "bg-primary text-primary-foreground shadow-md glow-primary"
+                  : "bg-muted/50 text-muted-foreground hover:bg-muted"
+              }`}
+            >
+              <tab.icon className="h-4 w-4" />
+              {tab.label}
+              {tab.count > 0 && (
+                <span className={`text-xs px-2 py-0.5 rounded-full ${
+                  activeTab === tab.key ? "bg-primary-foreground/20" : "bg-primary/10 text-primary"
+                }`}>
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
 
-          {/* Trip Management */}
-          <div className="glass-card rounded-xl p-6">
-            <h2 className="font-heading font-semibold text-lg mb-4 flex items-center gap-2">
-              <MapPin className="h-5 w-5 text-accent" /> {t("manageTrips")}
-            </h2>
-            {pendingTrips.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">{t("noResults")}</p>
-            ) : (
-              <div className="space-y-3">
-                {pendingTrips.map((trip) => (
-                  <div key={trip.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                    <div>
-                      <p className="text-sm font-medium">{trip.from} → {trip.to}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {trip.driverName} · {trip.date} · {trip.time}
-                      </p>
-                      <p className="text-xs text-primary font-medium">{trip.price?.toLocaleString()}₮ · {trip.seats} {t("seats")}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        disabled={actionLoading === trip.id}
-                        onClick={() => handleTripAction(trip.id, "approved")}
-                      >
-                        {actionLoading === trip.id ? <Loader2 className="h-3 w-3 animate-spin" /> : t("approve")}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={actionLoading === trip.id}
-                        onClick={() => handleTripAction(trip.id, "rejected")}
-                      >
-                        {t("reject")}
-                      </Button>
-                    </div>
+        {/* Content */}
+        <div className="glass-card-elevated rounded-2xl p-6 md:p-8 animate-fade-in" style={{ animationDelay: "300ms" }}>
+          {/* Drivers */}
+          {activeTab === "drivers" && (
+            <div>
+              <h2 className="font-heading font-semibold text-xl mb-6 flex items-center gap-2">
+                <Shield className="h-5 w-5 text-primary" /> Driver Verification
+              </h2>
+              {pendingDrivers.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle className="h-8 w-8 text-success" />
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Complaints */}
-          <div className="glass-card rounded-xl p-6 lg:col-span-2">
-            <h2 className="font-heading font-semibold text-lg mb-4 flex items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-warning" /> {t("manageComplaints")}
-            </h2>
-            {complaints.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">{t("noResults")}</p>
-            ) : (
-              <div className="space-y-3">
-                {complaints.map((c) => (
-                  <div key={c.id} className="flex items-start justify-between p-3 rounded-lg bg-muted/50">
-                    <div className="flex items-start gap-3">
-                      <AlertTriangle className="h-4 w-4 text-warning mt-0.5" />
-                      <div>
-                        <p className="text-sm font-medium">{c.userName || "Unknown"}</p>
-                        <p className="text-sm text-muted-foreground">{c.message}</p>
+                  <p className="text-muted-foreground font-medium">All caught up!</p>
+                  <p className="text-sm text-muted-foreground/70 mt-1">No pending verifications</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {pendingDrivers.map((d) => (
+                    <div key={d.id} className="flex items-center justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                          <Users className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{d.userName || d.userId}</p>
+                          <p className="text-xs text-muted-foreground">{d.userPhone}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button size="sm" variant="outline" className="text-xs">
+                          <Eye className="mr-1 h-3 w-3" /> Documents
+                        </Button>
+                        <Button size="sm" disabled={actionLoading === d.id} onClick={() => handleDriverAction(d.id, "approved")} className="hover-scale">
+                          {actionLoading === d.id ? <Loader2 className="h-3 w-3 animate-spin" /> : t("approve")}
+                        </Button>
+                        <Button size="sm" variant="outline" disabled={actionLoading === d.id} onClick={() => handleDriverAction(d.id, "rejected")}>
+                          {t("reject")}
+                        </Button>
                       </div>
                     </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={actionLoading === c.id}
-                      onClick={() => handleDeleteComplaint(c.id)}
-                    >
-                      {actionLoading === c.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
-                    </Button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Trips */}
+          {activeTab === "trips" && (
+            <div>
+              <h2 className="font-heading font-semibold text-xl mb-6 flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-accent" /> Trip Approvals
+              </h2>
+              {pendingTrips.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle className="h-8 w-8 text-success" />
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+                  <p className="text-muted-foreground font-medium">All caught up!</p>
+                  <p className="text-sm text-muted-foreground/70 mt-1">No pending trips</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {pendingTrips.map((trip) => (
+                    <div key={trip.id} className="flex items-center justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
+                          <MapPin className="h-5 w-5 text-accent" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{trip.from} → {trip.to}</p>
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                            <span>{trip.driverName}</span>
+                            <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {trip.date} {trip.time}</span>
+                            <span className="font-medium text-primary">{trip.price?.toLocaleString()}₮</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" disabled={actionLoading === trip.id} onClick={() => handleTripAction(trip.id, "approved")} className="hover-scale">
+                          {actionLoading === trip.id ? <Loader2 className="h-3 w-3 animate-spin" /> : t("approve")}
+                        </Button>
+                        <Button size="sm" variant="outline" disabled={actionLoading === trip.id} onClick={() => handleTripAction(trip.id, "rejected")}>
+                          {t("reject")}
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Complaints */}
+          {activeTab === "complaints" && (
+            <div>
+              <h2 className="font-heading font-semibold text-xl mb-6 flex items-center gap-2">
+                <MessageSquare className="h-5 w-5 text-warning" /> Complaints & Feedback
+              </h2>
+              {complaints.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle className="h-8 w-8 text-success" />
+                  </div>
+                  <p className="text-muted-foreground font-medium">No complaints!</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {complaints.map((c) => (
+                    <div key={c.id} className="flex items-start justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-warning/10 flex items-center justify-center mt-0.5">
+                          <AlertTriangle className="h-4 w-4 text-warning" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{c.userName || "Anonymous"}</p>
+                          <p className="text-sm text-muted-foreground mt-1">{c.message}</p>
+                        </div>
+                      </div>
+                      <Button size="sm" variant="outline" disabled={actionLoading === c.id} onClick={() => handleDeleteComplaint(c.id)}>
+                        {actionLoading === c.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
