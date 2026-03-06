@@ -1,43 +1,95 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { MapPin, Calendar, Clock, Users, User, Car, ArrowLeft, Shield, LogIn } from "lucide-react";
+import { doc, getDoc, addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { MapPin, Calendar, Clock, Users, User, Car, ArrowLeft, Shield, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-const tripData: Record<string, any> = {
-  "1": { from: "Ulaanbaatar", to: "Darkhan", date: "2026-03-10", time: "08:00", seats: 3, price: 25000, driverName: "Batbold", carType: "Toyota Prius", phone: "+976 9911 2233" },
-  "2": { from: "Ulaanbaatar", to: "Erdenet", date: "2026-03-11", time: "07:00", seats: 2, price: 35000, driverName: "Munkh-Erdene", carType: "Hyundai Starex", phone: "+976 9922 3344" },
-  "3": { from: "Darkhan", to: "Sukhbaatar", date: "2026-03-10", time: "10:00", seats: 4, price: 15000, driverName: "Tuvshinbayar", carType: "Toyota Land Cruiser", phone: "+976 9933 4455" },
-  "4": { from: "Ulaanbaatar", to: "Kharkhorin", date: "2026-03-12", time: "06:30", seats: 1, price: 30000, driverName: "Enkhbat", carType: "Mitsubishi Delica", phone: "+976 9944 5566" },
-  "5": { from: "Erdenet", to: "Murun", date: "2026-03-13", time: "09:00", seats: 3, price: 40000, driverName: "Sukhbaatar", carType: "Toyota HiAce", phone: "+976 9955 6677" },
-  "6": { from: "Ulaanbaatar", to: "Choir", date: "2026-03-10", time: "14:00", seats: 4, price: 20000, driverName: "Ganbold", carType: "Toyota Prius", phone: "+976 9966 7788" },
-};
+interface TripData {
+  driverId: string;
+  driverName: string;
+  carType: string;
+  from: string;
+  to: string;
+  date: string;
+  time: string;
+  seats: number;
+  price: number;
+  status: string;
+}
 
 const TripDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { t } = useLanguage();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const trip = id ? tripData[id] : null;
+  const [trip, setTrip] = useState<TripData | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  if (!trip) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">{t("noResults")}</p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    const fetchTrip = async () => {
+      if (!id) return;
+      setLoading(true);
+      try {
+        const docSnap = await getDoc(doc(db, "trips", id));
+        if (docSnap.exists()) {
+          const data = docSnap.data() as TripData;
+          if (data.status === "approved") {
+            setTrip(data);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching trip:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTrip();
+  }, [id]);
 
-  const handleBook = () => {
+  const handleBook = async () => {
     if (!user) {
       toast.info(t("login") + " required");
       navigate("/login");
       return;
     }
-    toast.success("Booking request sent! (Demo mode)");
+    try {
+      await addDoc(collection(db, "bookings"), {
+        userId: user.uid,
+        tripId: id,
+        seats: 1,
+        status: "confirmed",
+        createdAt: serverTimestamp(),
+      });
+      toast.success("Booking confirmed!");
+    } catch (err) {
+      console.error("Booking error:", err);
+      toast.error("Booking failed");
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!trip) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <MapPin className="h-12 w-12 text-muted-foreground/40 mx-auto mb-4" />
+          <p className="text-muted-foreground">{t("noResults")}</p>
+          <Link to="/trips" className="text-primary text-sm hover:underline mt-2 inline-block">{t("back")}</Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background py-8">

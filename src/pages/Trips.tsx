@@ -1,27 +1,59 @@
-import React, { useState } from "react";
-import { useLanguage } from "@/contexts/LanguageContext";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Search, MapPin, Calendar, Clock, Users, ArrowRight } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { Search, MapPin, Calendar, Clock, Users, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-// Mock data for demo
-const mockTrips = [
-  { id: "1", from: "Ulaanbaatar", to: "Darkhan", date: "2026-03-10", time: "08:00", seats: 3, price: 25000, driverName: "Batbold", carType: "Toyota Prius", status: "approved" },
-  { id: "2", from: "Ulaanbaatar", to: "Erdenet", date: "2026-03-11", time: "07:00", seats: 2, price: 35000, driverName: "Munkh-Erdene", carType: "Hyundai Starex", status: "approved" },
-  { id: "3", from: "Darkhan", to: "Sukhbaatar", date: "2026-03-10", time: "10:00", seats: 4, price: 15000, driverName: "Tuvshinbayar", carType: "Toyota Land Cruiser", status: "approved" },
-  { id: "4", from: "Ulaanbaatar", to: "Kharkhorin", date: "2026-03-12", time: "06:30", seats: 1, price: 30000, driverName: "Enkhbat", carType: "Mitsubishi Delica", status: "approved" },
-  { id: "5", from: "Erdenet", to: "Murun", date: "2026-03-13", time: "09:00", seats: 3, price: 40000, driverName: "Sukhbaatar", carType: "Toyota HiAce", status: "approved" },
-  { id: "6", from: "Ulaanbaatar", to: "Choir", date: "2026-03-10", time: "14:00", seats: 4, price: 20000, driverName: "Ganbold", carType: "Toyota Prius", status: "approved" },
-];
+interface Trip {
+  id: string;
+  driverId: string;
+  driverName: string;
+  carType: string;
+  from: string;
+  to: string;
+  date: string;
+  time: string;
+  seats: number;
+  price: number;
+  status: string;
+}
 
 const Trips: React.FC = () => {
   const { t } = useLanguage();
   const [searchFrom, setSearchFrom] = useState("");
   const [searchTo, setSearchTo] = useState("");
   const [searchDate, setSearchDate] = useState("");
+  const [trips, setTrips] = useState<Trip[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = mockTrips.filter((trip) => {
+  useEffect(() => {
+    const fetchTrips = async () => {
+      setLoading(true);
+      try {
+        const q = query(
+          collection(db, "trips"),
+          where("status", "==", "approved")
+        );
+        const snapshot = await getDocs(q);
+        const fetchedTrips: Trip[] = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Trip[];
+        setTrips(fetchedTrips);
+      } catch (err) {
+        console.error("Error fetching trips:", err);
+        setTrips([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTrips();
+  }, []);
+
+  const filtered = trips.filter((trip) => {
     const matchFrom = !searchFrom || trip.from.toLowerCase().includes(searchFrom.toLowerCase());
     const matchTo = !searchTo || trip.to.toLowerCase().includes(searchTo.toLowerCase());
     const matchDate = !searchDate || trip.date === searchDate;
@@ -74,8 +106,20 @@ const Trips: React.FC = () => {
 
       {/* Results */}
       <div className="container mx-auto px-4 py-8">
-        {filtered.length === 0 ? (
-          <p className="text-center text-muted-foreground py-12">{t("noResults")}</p>
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-20">
+            <MapPin className="h-12 w-12 text-muted-foreground/40 mx-auto mb-4" />
+            <p className="text-muted-foreground text-lg">{t("noResults")}</p>
+            <p className="text-sm text-muted-foreground/70 mt-1">
+              {trips.length === 0
+                ? "No approved trips available yet"
+                : "Try adjusting your search filters"}
+            </p>
+          </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((trip) => (
