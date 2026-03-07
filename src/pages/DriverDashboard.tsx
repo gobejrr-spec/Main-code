@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { MapPin, Calendar, Clock, Users, Plus, Upload, Shield, AlertCircle, Loader2, CheckCircle } from "lucide-react";
+import { MapPin, Calendar, Clock, Users, Plus, Upload, Shield, AlertCircle, Loader2, CheckCircle, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, where, getDocs, addDoc, serverTimestamp, doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { toast } from "sonner";
 import LocationSelect from "@/components/LocationSelect";
@@ -28,7 +28,7 @@ const DriverDashboard: React.FC = () => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const verified = false; // Would come from Firestore driver doc
+  const [verificationStatus, setVerificationStatus] = useState<string>("pending");
 
   // Trip form state
   const [tripFrom, setTripFrom] = useState("");
@@ -37,23 +37,32 @@ const DriverDashboard: React.FC = () => {
   const [tripTime, setTripTime] = useState("");
   const [tripSeats, setTripSeats] = useState("");
   const [tripPrice, setTripPrice] = useState("");
+  const [carType, setCarType] = useState("");
 
   useEffect(() => {
-    const fetchMyTrips = async () => {
+    const fetchData = async () => {
       if (!user) return;
       setLoading(true);
       try {
+        // Fetch verification status
+        const driverDoc = await getDoc(doc(db, "drivers", user.uid));
+        if (driverDoc.exists()) {
+          setVerificationStatus(driverDoc.data().verificationStatus || "pending");
+        }
+        // Fetch trips
         const q = query(collection(db, "trips"), where("driverId", "==", user.uid));
         const snapshot = await getDocs(q);
-        setTrips(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Trip)));
+        setTrips(snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Trip)));
       } catch (err) {
-        console.error("Error fetching driver trips:", err);
+        console.error("Error:", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchMyTrips();
+    fetchData();
   }, [user]);
+
+  const isVerified = verificationStatus === "approved";
 
   const handleCreateTrip = async () => {
     if (!user || !tripFrom || !tripTo || !tripDate || !tripTime || !tripSeats || !tripPrice) {
@@ -65,7 +74,8 @@ const DriverDashboard: React.FC = () => {
       await addDoc(collection(db, "trips"), {
         driverId: user.uid,
         driverName: profile?.name || "Unknown",
-        carType: "",
+        driverPhone: profile?.phone || "",
+        carType: carType,
         from: tripFrom,
         to: tripTo,
         date: tripDate,
@@ -77,11 +87,10 @@ const DriverDashboard: React.FC = () => {
       });
       toast.success("Аялал амжилттай илгээгдлээ! Админ баталгаажуулсны дараа харагдана.");
       setShowCreateTrip(false);
-      setTripFrom(""); setTripTo(""); setTripDate(""); setTripTime(""); setTripSeats(""); setTripPrice("");
-      // Refresh
+      setTripFrom(""); setTripTo(""); setTripDate(""); setTripTime(""); setTripSeats(""); setTripPrice(""); setCarType("");
       const q = query(collection(db, "trips"), where("driverId", "==", user.uid));
       const snapshot = await getDocs(q);
-      setTrips(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Trip)));
+      setTrips(snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Trip)));
     } catch (err) {
       console.error(err);
       toast.error("Алдаа гарлаа");
@@ -103,19 +112,31 @@ const DriverDashboard: React.FC = () => {
           <p className="text-muted-foreground mt-1">Аялалаа удирдах самбар</p>
         </div>
 
-        {/* Verification Banner */}
-        {!verified && (
+        {/* Verification Status */}
+        {!isVerified ? (
           <div className="glass-card-elevated rounded-2xl p-5 mb-6 border-l-4 border-warning flex items-start gap-3 animate-fade-in">
             <AlertCircle className="h-5 w-5 text-warning mt-0.5" />
             <div>
-              <p className="font-medium text-sm">{t("verificationPending")}</p>
-              <p className="text-xs text-muted-foreground mt-1">Бичиг баримтаа байршуулж баталгаажуулна уу</p>
+              <p className="font-medium text-sm">
+                {verificationStatus === "rejected" ? "Баталгаажуулалт татгалзсан" : t("verificationPending")}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Бичиг баримтаа байршуулж баталгаажуулна уу. Баталгаажсаны дараа аялал оруулж болно.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="glass-card-elevated rounded-2xl p-5 mb-6 border-l-4 border-success flex items-start gap-3 animate-fade-in">
+            <CheckCircle className="h-5 w-5 text-success mt-0.5" />
+            <div>
+              <p className="font-medium text-sm text-success">Баталгаажсан жолооч</p>
+              <p className="text-xs text-muted-foreground mt-1">Та аялал оруулж болно</p>
             </div>
           </div>
         )}
 
-        {/* Verification Documents */}
-        {!verified && (
+        {/* Verification Documents - only if not verified */}
+        {!isVerified && (
           <div className="glass-card-elevated rounded-2xl p-6 mb-6 animate-fade-in" style={{ animationDelay: "100ms" }}>
             <h2 className="font-heading font-semibold text-lg mb-4 flex items-center gap-2">
               <Shield className="h-5 w-5 text-primary" /> {t("verification")}
@@ -139,12 +160,18 @@ const DriverDashboard: React.FC = () => {
         {/* Create Trip */}
         <div className="flex items-center justify-between mb-4 animate-fade-in" style={{ animationDelay: "200ms" }}>
           <h2 className="font-heading font-semibold text-xl">Миний аялалууд</h2>
-          <Button size="sm" onClick={() => setShowCreateTrip(!showCreateTrip)} className="hover-scale">
-            <Plus className="mr-2 h-4 w-4" /> Аялал үүсгэх
-          </Button>
+          {isVerified ? (
+            <Button size="sm" onClick={() => setShowCreateTrip(!showCreateTrip)} className="hover-scale">
+              <Plus className="mr-2 h-4 w-4" /> Аялал үүсгэх
+            </Button>
+          ) : (
+            <Button size="sm" disabled className="opacity-50">
+              <Lock className="mr-2 h-4 w-4" /> Баталгаажсаны дараа
+            </Button>
+          )}
         </div>
 
-        {showCreateTrip && (
+        {showCreateTrip && isVerified && (
           <div className="glass-card-elevated rounded-2xl p-6 mb-6 animate-fade-in">
             <h3 className="font-heading font-semibold mb-4">Шинэ аялал үүсгэх</h3>
             <div className="grid sm:grid-cols-2 gap-4">
@@ -172,6 +199,10 @@ const DriverDashboard: React.FC = () => {
                 <Label>Үнэ (₮)</Label>
                 <Input type="number" placeholder="25000" value={tripPrice} onChange={(e) => setTripPrice(e.target.value)} />
               </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Машины төрөл</Label>
+                <Input placeholder="Toyota Prius, Hyundai Starex г.м." value={carType} onChange={(e) => setCarType(e.target.value)} />
+              </div>
             </div>
             <div className="flex gap-3 mt-5">
               <Button onClick={handleCreateTrip} disabled={submitting} className="hover-scale">
@@ -194,7 +225,9 @@ const DriverDashboard: React.FC = () => {
               <MapPin className="h-8 w-8 text-muted-foreground/40" />
             </div>
             <p className="text-muted-foreground font-medium">Аялал байхгүй байна</p>
-            <p className="text-sm text-muted-foreground/70 mt-1">Шинэ аялал үүсгэж эхлээрэй</p>
+            <p className="text-sm text-muted-foreground/70 mt-1">
+              {isVerified ? "Шинэ аялал үүсгэж эхлээрэй" : "Баталгаажуулалтаа хийснийх дараа аялал оруулж болно"}
+            </p>
           </div>
         ) : (
           <div className="space-y-3 animate-stagger">
