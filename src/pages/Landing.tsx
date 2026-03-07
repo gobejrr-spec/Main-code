@@ -1,18 +1,42 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Search, MapPin, Shield, ArrowRight, Car, Users, Clock, Star, ChevronRight, Sparkles } from "lucide-react";
+import { Search, MapPin, Shield, ArrowRight, Car, Users, Clock, Star, ChevronRight, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-landscape.jpg";
+import { collection, getCountFromServer } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 const Landing: React.FC = () => {
   const { t } = useLanguage();
+  const [stats, setStats] = useState({ users: 0, drivers: 0 });
+  const [statsLoaded, setStatsLoaded] = useState(false);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const [usersSnap, driversSnap] = await Promise.all([
+          getCountFromServer(collection(db, "users")),
+          getCountFromServer(collection(db, "drivers")),
+        ]);
+        setStats({
+          users: usersSnap.data().count,
+          drivers: driversSnap.data().count,
+        });
+      } catch (err) {
+        console.error("Stats fetch error:", err);
+      } finally {
+        setStatsLoaded(true);
+      }
+    };
+    fetchStats();
+  }, []);
 
   const routes = [
-    { from: "Улаанбаатар", to: "Дархан", price: "25,000₮", time: "4h", emoji: "🏙️" },
-    { from: "Улаанбаатар", to: "Эрдэнэт", price: "35,000₮", time: "6h", emoji: "⛏️" },
-    { from: "Улаанбаатар", to: "Хархорин", price: "30,000₮", time: "5h", emoji: "🏛️" },
-    { from: "Дархан", to: "Сүхбаатар", price: "15,000₮", time: "2h", emoji: "🌿" },
+    { from: "Улаанбаатар", to: "Дархан-Уул", price: "25,000₮", time: "4ц", emoji: "🏙️" },
+    { from: "Улаанбаатар", to: "Орхон", price: "35,000₮", time: "6ц", emoji: "⛏️" },
+    { from: "Улаанбаатар", to: "Өвөрхангай", price: "30,000₮", time: "5ц", emoji: "🏛️" },
+    { from: "Дархан-Уул", to: "Сэлэнгэ", price: "15,000₮", time: "2ц", emoji: "🌿" },
   ];
 
   const steps = [
@@ -25,7 +49,6 @@ const Landing: React.FC = () => {
     <div className="flex flex-col">
       {/* Hero */}
       <section className="relative min-h-[90vh] flex items-center overflow-hidden">
-        {/* Background Image */}
         <div className="absolute inset-0">
           <img src={heroImage} alt="Mongolian steppe" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 via-foreground/50 to-transparent" />
@@ -36,7 +59,7 @@ const Landing: React.FC = () => {
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 bg-primary/20 backdrop-blur-md text-primary-foreground text-sm font-medium px-4 py-2 rounded-full mb-8 animate-fade-in border border-primary-foreground/20">
               <Sparkles className="h-4 w-4" />
-              Mongolia's #1 Rural Transport Platform
+              Монголын #1 Хөдөө Тээврийн Платформ
             </div>
 
             <h1 className="font-heading text-5xl md:text-7xl font-bold text-primary-foreground leading-[1.1] mb-6 animate-fade-in" style={{ animationDelay: "100ms" }}>
@@ -59,12 +82,12 @@ const Landing: React.FC = () => {
               </Button>
             </div>
 
-            {/* Stats inline */}
+            {/* Stats - real from Firebase */}
             <div className="flex items-center gap-8 mt-14 animate-fade-in" style={{ animationDelay: "400ms" }}>
               {[
-                { icon: Users, val: "500+", label: "Riders" },
-                { icon: Car, val: "120+", label: "Drivers" },
-                { icon: Star, val: "4.8", label: "Rating" },
+                { icon: Users, val: statsLoaded ? `${stats.users}+` : "...", label: "Зорчигч" },
+                { icon: Car, val: statsLoaded ? `${stats.drivers}+` : "...", label: "Жолооч" },
+                { icon: Star, val: "4.8", label: "Үнэлгээ" },
               ].map((s, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-primary-foreground/10 backdrop-blur-sm flex items-center justify-center border border-primary-foreground/20">
@@ -88,7 +111,7 @@ const Landing: React.FC = () => {
           <div className="text-center mb-16">
             <span className="text-primary font-medium text-sm tracking-wide uppercase">{t("howItWorks")}</span>
             <h2 className="font-heading text-4xl md:text-5xl font-bold mt-3">
-              Simple & <span className="text-gradient">Reliable</span>
+              Хялбар & <span className="text-gradient">Найдвартай</span>
             </h2>
           </div>
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto animate-stagger">
@@ -113,20 +136,16 @@ const Landing: React.FC = () => {
         <div className="container mx-auto px-4">
           <div className="flex items-end justify-between mb-12">
             <div>
-              <span className="text-primary font-medium text-sm tracking-wide uppercase">{t("popularRoutes")}</span>
-              <h2 className="font-heading text-4xl font-bold mt-3">Top Destinations</h2>
+              <span className="text-primary font-medium text-sm tracking-wide uppercase">Эрэлттэй чиглэлүүд</span>
+              <h2 className="font-heading text-4xl font-bold mt-3">Шилдэг чиглэлүүд</h2>
             </div>
             <Link to="/trips" className="text-primary font-medium text-sm flex items-center gap-1 hover:gap-2 transition-all">
-              View all <ChevronRight className="h-4 w-4" />
+              Бүгдийг харах <ChevronRight className="h-4 w-4" />
             </Link>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 animate-stagger">
             {routes.map((route, i) => (
-              <Link
-                key={i}
-                to="/trips"
-                className="group glass-card-elevated rounded-2xl p-6 hover-lift"
-              >
+              <Link key={i} to="/trips" className="group glass-card-elevated rounded-2xl p-6 hover-lift">
                 <div className="text-3xl mb-4">{route.emoji}</div>
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-2 h-2 rounded-full bg-primary" />
