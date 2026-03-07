@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Search, MapPin, Shield, ArrowRight, Car, Users, Clock, Star, ChevronRight, Sparkles, Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Search, MapPin, Shield, ArrowRight, Car, Users, Clock, Star, Sparkles, Loader2, CheckCircle, Phone, CreditCard, Compass } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-landscape.jpg";
 import { collection, getCountFromServer } from "firebase/firestore";
@@ -9,6 +10,7 @@ import { db } from "@/lib/firebase";
 
 const Landing: React.FC = () => {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [stats, setStats] = useState({ users: 0, drivers: 0 });
   const [statsLoaded, setStatsLoaded] = useState(false);
 
@@ -19,10 +21,7 @@ const Landing: React.FC = () => {
           getCountFromServer(collection(db, "users")),
           getCountFromServer(collection(db, "drivers")),
         ]);
-        setStats({
-          users: usersSnap.data().count,
-          drivers: driversSnap.data().count,
-        });
+        setStats({ users: usersSnap.data().count, drivers: driversSnap.data().count });
       } catch (err) {
         console.error("Stats fetch error:", err);
       } finally {
@@ -32,17 +31,35 @@ const Landing: React.FC = () => {
     fetchStats();
   }, []);
 
-  const routes = [
-    { from: "Улаанбаатар", to: "Дархан-Уул", price: "25,000₮", time: "4ц", emoji: "🏙️" },
-    { from: "Улаанбаатар", to: "Орхон", price: "35,000₮", time: "6ц", emoji: "⛏️" },
-    { from: "Улаанбаатар", to: "Өвөрхангай", price: "30,000₮", time: "5ц", emoji: "🏛️" },
-    { from: "Дархан-Уул", to: "Сэлэнгэ", price: "15,000₮", time: "2ц", emoji: "🌿" },
-  ];
-
   const steps = [
-    { icon: Search, title: t("step1Title"), desc: t("step1Desc"), color: "from-primary to-primary-glow" },
-    { icon: MapPin, title: t("step2Title"), desc: t("step2Desc"), color: "from-secondary to-warning" },
-    { icon: Shield, title: t("step3Title"), desc: t("step3Desc"), color: "from-accent to-success" },
+    {
+      icon: Search,
+      title: "Чиглэл хайх",
+      desc: "Аймаг, сумаа сонгоод тохирох аялалыг олоорой. Хаанаас хаашаа, хэзээ гэдгээ оруулна.",
+      color: "from-primary to-primary-glow",
+      step: "01",
+    },
+    {
+      icon: CheckCircle,
+      title: "Жолоочийн мэдээлэл харах",
+      desc: "Жолоочийн нэр, утас, машины мэдээлэл, үлдсэн суудлыг бүрэн харж, итгэлтэйгээр захиалаарай.",
+      color: "from-secondary to-warning",
+      step: "02",
+    },
+    {
+      icon: CreditCard,
+      title: "QPay-ээр төлөх",
+      desc: "Захиалгаа баталгаажуулж QPay-ээр төлбөрөө шилжүүлнэ. 5 минутын дотор төлөхгүй бол захиалга цуцлагдана.",
+      color: "from-accent to-success",
+      step: "03",
+    },
+    {
+      icon: Shield,
+      title: "Аюулгүй аялах",
+      desc: "Баталгаажсан жолоочтой уулзаж, захиалгын код-оо харуулаад аялалаа эхлүүлээрэй.",
+      color: "from-primary to-accent",
+      step: "04",
+    },
   ];
 
   return (
@@ -50,7 +67,7 @@ const Landing: React.FC = () => {
       {/* Hero */}
       <section className="relative min-h-[90vh] flex items-center overflow-hidden">
         <div className="absolute inset-0">
-          <img src={heroImage} alt="Mongolian steppe" className="w-full h-full object-cover" />
+          <img src={heroImage} alt="Монгол тал" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 via-foreground/50 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-t from-foreground/40 to-transparent" />
         </div>
@@ -78,11 +95,14 @@ const Landing: React.FC = () => {
                 </Link>
               </Button>
               <Button size="lg" variant="outline" className="text-base px-8 py-6 bg-primary-foreground/10 backdrop-blur-md border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/20 hover-scale" asChild>
-                <Link to="/register">{t("becomeDriver")}</Link>
+                <Link to="/explore">
+                  <Compass className="mr-2 h-5 w-5" />
+                  Аймгууд үзэх
+                </Link>
               </Button>
             </div>
 
-            {/* Stats - real from Firebase */}
+            {/* Stats */}
             <div className="flex items-center gap-8 mt-14 animate-fade-in" style={{ animationDelay: "400ms" }}>
               {[
                 { icon: Users, val: statsLoaded ? `${stats.users}+` : "...", label: "Зорчигч" },
@@ -113,81 +133,52 @@ const Landing: React.FC = () => {
             <h2 className="font-heading text-4xl md:text-5xl font-bold mt-3">
               Хялбар & <span className="text-gradient">Найдвартай</span>
             </h2>
+            <p className="text-muted-foreground mt-4 max-w-lg mx-auto">
+              4 алхамаар аюулгүй, хямд аялалаа захиалаарай
+            </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto animate-stagger">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto animate-stagger">
             {steps.map((step, i) => (
-              <div key={i} className="group glass-card-elevated rounded-2xl p-8 text-center hover-lift">
-                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-500`}>
-                  <step.icon className="h-8 w-8 text-primary-foreground" />
+              <div key={i} className="group glass-card-elevated rounded-2xl p-7 hover-lift relative overflow-hidden">
+                <div className="absolute top-4 right-4 font-heading text-6xl font-bold text-muted/40 leading-none select-none">
+                  {step.step}
                 </div>
-                <div className="w-8 h-8 rounded-full bg-muted text-foreground font-heading font-bold text-sm flex items-center justify-center mx-auto mb-4">
-                  {i + 1}
+                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-500`}>
+                  <step.icon className="h-7 w-7 text-primary-foreground" />
                 </div>
-                <h3 className="font-heading font-semibold text-xl mb-3">{step.title}</h3>
-                <p className="text-muted-foreground leading-relaxed">{step.desc}</p>
+                <h3 className="font-heading font-semibold text-lg mb-2">{step.title}</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed">{step.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Popular Routes */}
-      <section className="py-24 bg-muted/30 relative">
-        <div className="container mx-auto px-4">
-          <div className="flex items-end justify-between mb-12">
-            <div>
-              <span className="text-primary font-medium text-sm tracking-wide uppercase">Эрэлттэй чиглэлүүд</span>
-              <h2 className="font-heading text-4xl font-bold mt-3">Шилдэг чиглэлүүд</h2>
+      {/* CTA - only show for non-logged-in users */}
+      {!user && (
+        <section className="py-24 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-accent opacity-95" />
+          <div className="absolute inset-0">
+            <div className="absolute top-10 right-10 w-72 h-72 bg-primary-foreground/10 rounded-full blur-3xl animate-float" />
+            <div className="absolute bottom-10 left-10 w-96 h-96 bg-primary-foreground/5 rounded-full blur-3xl animate-float" style={{ animationDelay: "1.5s" }} />
+          </div>
+          <div className="container mx-auto px-4 text-center max-w-2xl relative z-10">
+            <div className="w-20 h-20 rounded-3xl bg-primary-foreground/10 backdrop-blur-sm flex items-center justify-center mx-auto mb-8 animate-bounce-soft border border-primary-foreground/20">
+              <MapPin className="h-10 w-10 text-primary-foreground" />
             </div>
-            <Link to="/trips" className="text-primary font-medium text-sm flex items-center gap-1 hover:gap-2 transition-all">
-              Бүгдийг харах <ChevronRight className="h-4 w-4" />
-            </Link>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 animate-stagger">
-            {routes.map((route, i) => (
-              <Link key={i} to="/trips" className="group glass-card-elevated rounded-2xl p-6 hover-lift">
-                <div className="text-3xl mb-4">{route.emoji}</div>
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-2 h-2 rounded-full bg-primary" />
-                  <span className="text-sm font-medium">{route.from}</span>
-                </div>
-                <div className="flex items-center gap-2 mb-5">
-                  <div className="w-2 h-2 rounded-full bg-accent" />
-                  <span className="text-sm font-medium">{route.to}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="font-heading font-bold text-xl text-primary">{route.price}</span>
-                  <span className="text-muted-foreground flex items-center gap-1 text-sm">
-                    <Clock className="h-3.5 w-3.5" /> {route.time}
-                  </span>
-                </div>
+            <h2 className="font-heading text-4xl md:text-5xl font-bold text-primary-foreground mb-6">Одоо бүртгүүлээрэй</h2>
+            <p className="text-primary-foreground/80 text-lg mb-10 max-w-md mx-auto">
+              Бүртгүүлж, Монгол даяарх аялалуудыг хайж, захиалаарай
+            </p>
+            <Button size="lg" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 text-base px-10 py-6 hover-scale" asChild>
+              <Link to="/register">
+                Бүртгүүлэх
+                <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
-            ))}
+            </Button>
           </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-accent opacity-95" />
-        <div className="absolute inset-0">
-          <div className="absolute top-10 right-10 w-72 h-72 bg-primary-foreground/10 rounded-full blur-3xl animate-float" />
-          <div className="absolute bottom-10 left-10 w-96 h-96 bg-primary-foreground/5 rounded-full blur-3xl animate-float" style={{ animationDelay: "1.5s" }} />
-        </div>
-        <div className="container mx-auto px-4 text-center max-w-2xl relative z-10">
-          <div className="w-20 h-20 rounded-3xl bg-primary-foreground/10 backdrop-blur-sm flex items-center justify-center mx-auto mb-8 animate-bounce-soft border border-primary-foreground/20">
-            <Car className="h-10 w-10 text-primary-foreground" />
-          </div>
-          <h2 className="font-heading text-4xl md:text-5xl font-bold text-primary-foreground mb-6">{t("becomeDriver")}</h2>
-          <p className="text-primary-foreground/80 text-lg mb-10 max-w-md mx-auto">{t("becomeDriverDesc")}</p>
-          <Button size="lg" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 text-base px-10 py-6 hover-scale" asChild>
-            <Link to="/register">
-              {t("registerAsDriver")}
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </Button>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 };

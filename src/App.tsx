@@ -15,6 +15,7 @@ import TripDetails from "@/pages/TripDetails";
 import PassengerDashboard from "@/pages/PassengerDashboard";
 import DriverDashboard from "@/pages/DriverDashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
+import Explore from "@/pages/Explore";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => (
                   <Route path="/passenger" element={<PassengerDashboard />} />
                   <Route path="/driver" element={<DriverDashboard />} />
                   <Route path="/admin" element={<AdminDashboard />} />
+                  <Route path="/explore" element={<Explore />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>

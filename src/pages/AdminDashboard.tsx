@@ -6,7 +6,7 @@ import {
 import { db } from "@/lib/firebase";
 import {
   Users, Car, MapPin, CheckCircle, Shield, AlertTriangle, MessageSquare,
-  Loader2, Trash2, TrendingUp, Eye, Clock
+  Loader2, Trash2, Eye, Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -114,10 +114,10 @@ const AdminDashboard: React.FC = () => {
     try {
       await updateDoc(doc(db, "drivers", driverId), { verificationStatus: status });
       setPendingDrivers((prev) => prev.filter((d) => d.id !== driverId));
-      toast.success(status === "approved" ? "Driver approved!" : "Driver rejected");
+      toast.success(status === "approved" ? "Жолооч зөвшөөрөгдлөө!" : "Жолооч татгалзсан");
     } catch (err) {
       console.error(err);
-      toast.error("Action failed");
+      toast.error("Алдаа гарлаа");
     } finally { setActionLoading(null); }
   };
 
@@ -126,10 +126,10 @@ const AdminDashboard: React.FC = () => {
     try {
       await updateDoc(doc(db, "trips", tripId), { status });
       setPendingTrips((prev) => prev.filter((t) => t.id !== tripId));
-      toast.success(status === "approved" ? "Trip approved!" : "Trip rejected");
+      toast.success(status === "approved" ? "Аялал зөвшөөрөгдлөө!" : "Аялал татгалзсан");
     } catch (err) {
       console.error(err);
-      toast.error("Action failed");
+      toast.error("Алдаа гарлаа");
     } finally { setActionLoading(null); }
   };
 
@@ -138,31 +138,31 @@ const AdminDashboard: React.FC = () => {
     try {
       await deleteDoc(doc(db, "complaints", complaintId));
       setComplaints((prev) => prev.filter((c) => c.id !== complaintId));
-      toast.success("Complaint deleted");
+      toast.success("Гомдол устгагдлаа");
     } catch (err) {
       console.error(err);
-      toast.error("Delete failed");
+      toast.error("Устгах амжилтгүй");
     } finally { setActionLoading(null); }
   };
 
   const statCards = [
-    { icon: Users, label: t("totalUsers"), value: stats.users, color: "from-primary to-primary-glow", trend: "+12%" },
-    { icon: Car, label: t("totalDrivers"), value: stats.drivers, color: "from-secondary to-warning", trend: "+8%" },
-    { icon: MapPin, label: t("totalTrips"), value: stats.trips, color: "from-accent to-success", trend: "+24%" },
-    { icon: CheckCircle, label: t("completedTrips"), value: stats.completed, color: "from-success to-accent", trend: "+18%" },
+    { icon: Users, label: "Нийт хэрэглэгчид", value: stats.users, color: "from-primary to-primary-glow" },
+    { icon: Car, label: "Нийт жолоочид", value: stats.drivers, color: "from-secondary to-warning" },
+    { icon: MapPin, label: "Нийт аялалууд", value: stats.trips, color: "from-accent to-success" },
+    { icon: CheckCircle, label: "Дууссан аялалууд", value: stats.completed, color: "from-success to-accent" },
   ];
 
   const tabs = [
-    { key: "drivers" as const, label: t("manageDrivers"), icon: Shield, count: pendingDrivers.length },
-    { key: "trips" as const, label: t("manageTrips"), icon: MapPin, count: pendingTrips.length },
-    { key: "complaints" as const, label: t("manageComplaints"), icon: MessageSquare, count: complaints.length },
+    { key: "drivers" as const, label: "Жолоочдыг удирдах", icon: Shield, count: pendingDrivers.length },
+    { key: "trips" as const, label: "Аялалуудыг удирдах", icon: MapPin, count: pendingTrips.length },
+    { key: "complaints" as const, label: "Гомдлууд", icon: MessageSquare, count: complaints.length },
   ];
 
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center pt-16">
         <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
-        <p className="text-muted-foreground">{t("loading")}</p>
+        <p className="text-muted-foreground">Ачаалж байна...</p>
       </div>
     );
   }
@@ -170,27 +170,21 @@ const AdminDashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-background pt-20 pb-10">
       <div className="container mx-auto px-4 max-w-6xl">
-        {/* Header */}
         <div className="mb-10 animate-fade-in">
           <div className="inline-flex items-center gap-2 bg-primary/10 text-primary text-xs font-semibold px-3 py-1 rounded-full mb-3">
-            <Shield className="h-3 w-3" /> ADMIN PANEL
+            <Shield className="h-3 w-3" /> АДМИН
           </div>
-          <h1 className="font-heading text-3xl md:text-4xl font-bold">
-            {t("dashboard")}
-          </h1>
-          <p className="text-muted-foreground mt-1">Manage platform operations</p>
+          <h1 className="font-heading text-3xl md:text-4xl font-bold">Хянах самбар</h1>
+          <p className="text-muted-foreground mt-1">Платформыг удирдах</p>
         </div>
 
-        {/* Stats */}
+        {/* Stats - real numbers, no fake % */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10 animate-stagger">
           {statCards.map((stat, i) => (
             <div key={i} className="glass-card-elevated rounded-2xl p-6 hover-lift group">
               <div className="flex items-center justify-between mb-4">
                 <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-500`}>
                   <stat.icon className="h-6 w-6 text-primary-foreground" />
-                </div>
-                <div className="flex items-center gap-1 text-xs text-success font-medium bg-success/10 px-2 py-1 rounded-full">
-                  <TrendingUp className="h-3 w-3" /> {stat.trend}
                 </div>
               </div>
               <p className="font-heading text-3xl font-bold">{stat.value}</p>
@@ -226,19 +220,17 @@ const AdminDashboard: React.FC = () => {
 
         {/* Content */}
         <div className="glass-card-elevated rounded-2xl p-6 md:p-8 animate-fade-in" style={{ animationDelay: "300ms" }}>
-          {/* Drivers */}
           {activeTab === "drivers" && (
             <div>
               <h2 className="font-heading font-semibold text-xl mb-6 flex items-center gap-2">
-                <Shield className="h-5 w-5 text-primary" /> Driver Verification
+                <Shield className="h-5 w-5 text-primary" /> Жолоочийн баталгаажуулалт
               </h2>
               {pendingDrivers.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
                     <CheckCircle className="h-8 w-8 text-success" />
                   </div>
-                  <p className="text-muted-foreground font-medium">All caught up!</p>
-                  <p className="text-sm text-muted-foreground/70 mt-1">No pending verifications</p>
+                  <p className="text-muted-foreground font-medium">Хүлээгдэж буй баталгаажуулалт байхгүй</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -255,13 +247,13 @@ const AdminDashboard: React.FC = () => {
                       </div>
                       <div className="flex items-center gap-2">
                         <Button size="sm" variant="outline" className="text-xs">
-                          <Eye className="mr-1 h-3 w-3" /> Documents
+                          <Eye className="mr-1 h-3 w-3" /> Бичиг баримт
                         </Button>
                         <Button size="sm" disabled={actionLoading === d.id} onClick={() => handleDriverAction(d.id, "approved")} className="hover-scale">
-                          {actionLoading === d.id ? <Loader2 className="h-3 w-3 animate-spin" /> : t("approve")}
+                          {actionLoading === d.id ? <Loader2 className="h-3 w-3 animate-spin" /> : "Зөвшөөрөх"}
                         </Button>
                         <Button size="sm" variant="outline" disabled={actionLoading === d.id} onClick={() => handleDriverAction(d.id, "rejected")}>
-                          {t("reject")}
+                          Татгалзах
                         </Button>
                       </div>
                     </div>
@@ -271,19 +263,17 @@ const AdminDashboard: React.FC = () => {
             </div>
           )}
 
-          {/* Trips */}
           {activeTab === "trips" && (
             <div>
               <h2 className="font-heading font-semibold text-xl mb-6 flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-accent" /> Trip Approvals
+                <MapPin className="h-5 w-5 text-accent" /> Аялалын зөвшөөрөл
               </h2>
               {pendingTrips.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
                     <CheckCircle className="h-8 w-8 text-success" />
                   </div>
-                  <p className="text-muted-foreground font-medium">All caught up!</p>
-                  <p className="text-sm text-muted-foreground/70 mt-1">No pending trips</p>
+                  <p className="text-muted-foreground font-medium">Хүлээгдэж буй аялал байхгүй</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -304,10 +294,10 @@ const AdminDashboard: React.FC = () => {
                       </div>
                       <div className="flex gap-2">
                         <Button size="sm" disabled={actionLoading === trip.id} onClick={() => handleTripAction(trip.id, "approved")} className="hover-scale">
-                          {actionLoading === trip.id ? <Loader2 className="h-3 w-3 animate-spin" /> : t("approve")}
+                          {actionLoading === trip.id ? <Loader2 className="h-3 w-3 animate-spin" /> : "Зөвшөөрөх"}
                         </Button>
                         <Button size="sm" variant="outline" disabled={actionLoading === trip.id} onClick={() => handleTripAction(trip.id, "rejected")}>
-                          {t("reject")}
+                          Татгалзах
                         </Button>
                       </div>
                     </div>
@@ -317,18 +307,17 @@ const AdminDashboard: React.FC = () => {
             </div>
           )}
 
-          {/* Complaints */}
           {activeTab === "complaints" && (
             <div>
               <h2 className="font-heading font-semibold text-xl mb-6 flex items-center gap-2">
-                <MessageSquare className="h-5 w-5 text-warning" /> Complaints & Feedback
+                <MessageSquare className="h-5 w-5 text-warning" /> Гомдол & Санал
               </h2>
               {complaints.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
                     <CheckCircle className="h-8 w-8 text-success" />
                   </div>
-                  <p className="text-muted-foreground font-medium">No complaints!</p>
+                  <p className="text-muted-foreground font-medium">Гомдол байхгүй!</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -339,7 +328,7 @@ const AdminDashboard: React.FC = () => {
                           <AlertTriangle className="h-4 w-4 text-warning" />
                         </div>
                         <div>
-                          <p className="font-medium text-sm">{c.userName || "Anonymous"}</p>
+                          <p className="font-medium text-sm">{c.userName || "Нэргүй"}</p>
                           <p className="text-sm text-muted-foreground mt-1">{c.message}</p>
                         </div>
                       </div>
