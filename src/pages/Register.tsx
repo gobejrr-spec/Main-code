@@ -154,7 +154,7 @@ const Register: React.FC = () => {
       // Save user profile to Firestore
       await setDoc(doc(db, "users", cred.user.uid), {
         name: form.name,
-        ...(form.role === "driver" ? { lastName: form.lastName, plateNo: form.plateNo } : {}),
+        ...(form.role === "driver" ? { lastName: form.lastName } : {}),
         phone: form.phone,
         role: form.role,
         language,
@@ -169,7 +169,6 @@ const Register: React.FC = () => {
           driverLastName: form.lastName,
           driverPhone: form.phone,
           driverEmail: form.email,
-          vehiclePlate: form.plateNo,
           verificationStatus: "pending",
           createdAt: serverTimestamp(),
         });
@@ -266,27 +265,6 @@ const Register: React.FC = () => {
               <div className="space-y-2">
                 <Label className="text-sm font-medium">{t("name")}</Label>
                 <Input value={form.name} onChange={(e) => update("name", e.target.value)} required className="h-11" placeholder="Name / Нэр" />
-              </div>
-            )}
-
-            {form.role === "driver" && (
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Улсын дугаар</Label>
-                <Input
-                  value={form.plateNo}
-                  onChange={(e) => {
-                    let val = e.target.value;
-                    // First 4 chars: digits only, next 3: cyrillic only (auto uppercase)
-                    const digits = val.slice(0, 4).replace(/\D/g, "");
-                    const letters = val.slice(4).replace(/[^А-ЯӨҮЁа-яөүё]/g, "").toUpperCase().slice(0, 3);
-                    update("plateNo", digits + letters);
-                  }}
-                  required
-                  className="h-11 uppercase"
-                  placeholder="8332УБА"
-                  maxLength={7}
-                />
-                <p className="text-[11px] text-muted-foreground">4 тоо + 3 кирилл үсэг</p>
               </div>
             )}
 
