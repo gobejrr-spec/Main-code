@@ -312,8 +312,21 @@ const AdminDashboard: React.FC = () => {
     } finally { setActionLoading(null); }
   };
 
+  const handleBookingAction = async (bookingId: string, status: "confirmed" | "rejected") => {
+    setActionLoading(bookingId);
+    try {
+      await updateDoc(doc(db, "bookings", bookingId), { status });
+      setAllBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status } : b));
+      toast.success(status === "confirmed" ? t("bookingConfirmed") : t("bookingRejected"));
+    } catch (err) {
+      console.error(err);
+      toast.error(t("errorOccurred"));
+    } finally { setActionLoading(null); }
+  };
+
   const pendingDrivers = allDrivers.filter(d => d.verificationStatus === "pending");
   const pendingTrips = allTrips.filter(t => t.status === "pending");
+  const pendingBookings = allBookings.filter(b => b.status === "pending");
 
   const statCards = [
     { icon: Users, label: t("totalUsers"), value: stats.users, color: "from-primary to-primary-glow" },
