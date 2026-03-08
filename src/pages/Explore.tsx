@@ -69,7 +69,7 @@ const Explore: React.FC = () => {
 
               <div className="mt-8 pt-6 border-t border-border">
                 <Button asChild className="w-full glow-primary">
-                  <Link to={`/trips?from=${encodeURIComponent(selected.name)}`}>
+                  <Link to={`/trips?to=${encodeURIComponent(selected.name)}`}>
                     <MapPin className="mr-2 h-4 w-4" />
                     {selected.name} руу аялал хайх
                   </Link>

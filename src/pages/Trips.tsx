@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Search, MapPin, Calendar, Clock, Users, ArrowRight, Loader2, Flame, List } from "lucide-react";
@@ -26,8 +26,9 @@ interface Trip {
 const Trips: React.FC = () => {
   const { t } = useLanguage();
   const { user, loading: authLoading } = useAuth();
-  const [searchFrom, setSearchFrom] = useState("");
-  const [searchTo, setSearchTo] = useState("");
+  const [searchParams] = useSearchParams();
+  const [searchFrom, setSearchFrom] = useState(searchParams.get("from") || "");
+  const [searchTo, setSearchTo] = useState(searchParams.get("to") || "");
   const [searchDate, setSearchDate] = useState("");
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
