@@ -151,7 +151,7 @@ const DriverDashboard: React.FC = () => {
     setPhotoUrls(prev => { const n = { ...prev }; delete n[key]; return n; });
   };
 
-  const fullPlate = `${plateNumber}${plateSuffix}`.trim() || vehiclePlate;
+  const fullPlate = plateNumber.trim() || vehiclePlate;
 
   const handleSubmitVerification = async () => {
     if (!user) return;
@@ -309,31 +309,22 @@ const DriverDashboard: React.FC = () => {
                 </Select>
               </div>
 
-              {/* License Plate - number + suffix dropdown */}
+              {/* License Plate - single input: 4 digits + 3 cyrillic letters */}
               <div className="space-y-2">
                 <Label>Улсын дугаар *</Label>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="0000"
-                    value={plateNumber}
-                    onChange={e => {
-                      const val = e.target.value.replace(/\D/g, "").slice(0, 4);
-                      setPlateNumber(val);
-                    }}
-                    className="w-24"
-                    inputMode="numeric"
-                  />
-                  <Select value={plateSuffix} onValueChange={setPlateSuffix}>
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Үсэг сонгох" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-60">
-                      {PLATE_SUFFIXES.map(s => (
-                        <SelectItem key={s.code} value={s.code}>{s.code} — {s.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <Input
+                  placeholder="8332УБА"
+                  value={plateNumber}
+                  onChange={e => {
+                    let val = e.target.value;
+                    const digits = val.slice(0, 4).replace(/\D/g, "");
+                    const letters = val.slice(4).replace(/[^А-ЯӨҮЁа-яөүё]/g, "").toUpperCase().slice(0, 3);
+                    setPlateNumber(digits + letters);
+                  }}
+                  className="uppercase"
+                  maxLength={7}
+                />
+                <p className="text-[11px] text-muted-foreground">4 тоо + 3 кирилл үсэг</p>
               </div>
 
               {/* License Number */}
