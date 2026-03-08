@@ -78,6 +78,10 @@ const Register: React.FC = () => {
       toast.error("Утасны дугаар зөв оруулна уу");
       return;
     }
+    if (form.role === "driver" && !/^[а-яА-ЯөӨүҮёЁ\s-]+$/.test(form.name)) {
+      toast.error("Жолоочийн нэрийг зөвхөн кирилл үсгээр бичнэ үү");
+      return;
+    }
 
     setSendingOtp(true);
     try {
@@ -204,8 +208,21 @@ const Register: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label className="text-sm font-medium">{t("name")}</Label>
-                <Input value={form.name} onChange={(e) => update("name", e.target.value)} required className="h-11" placeholder="Баатар" />
+                <Label className="text-sm font-medium">{t("name")} {form.role === "driver" && <span className="text-xs text-muted-foreground">(кирилл)</span>}</Label>
+                <Input
+                  value={form.name}
+                  onChange={(e) => {
+                    if (form.role === "driver") {
+                      const val = e.target.value.replace(/[^а-яА-ЯөӨүҮёЁ\s-]/g, "");
+                      update("name", val);
+                    } else {
+                      update("name", e.target.value);
+                    }
+                  }}
+                  required
+                  className="h-11"
+                  placeholder={form.role === "driver" ? "Баатар" : "Name / Нэр"}
+                />
               </div>
               <div className="space-y-2">
                 <Label className="text-sm font-medium">{t("phone")}</Label>
