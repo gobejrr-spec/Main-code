@@ -53,12 +53,22 @@ const Register: React.FC = () => {
   };
 
   const setupRecaptcha = () => {
-    if (!window.recaptchaVerifier) {
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-        size: "invisible",
-        callback: () => {},
-      });
+    if (window.recaptchaVerifier) {
+      try {
+        window.recaptchaVerifier.clear();
+      } catch (e) {
+        // ignore
+      }
+      window.recaptchaVerifier = undefined as any;
     }
+    // Clear the container's innerHTML to avoid "already rendered" error
+    const container = document.getElementById("recaptcha-container");
+    if (container) container.innerHTML = "";
+
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+      size: "invisible",
+      callback: () => {},
+    });
   };
 
   const handleSendOtp = async (e: React.FormEvent) => {
