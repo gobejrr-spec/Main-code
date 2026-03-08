@@ -76,7 +76,8 @@ const Landing: React.FC = () => {
       {/* Hero */}
       <section className="relative min-h-[92vh] flex items-center overflow-hidden">
         <div className="absolute inset-0">
-          <img src={theme === "dark" ? heroNightImage : heroImage} alt="Монгол тал" className="w-full h-full object-cover scale-105 transition-opacity duration-700" />
+          <img src={heroImage} alt="Монгол тал" className={`absolute inset-0 w-full h-full object-cover scale-105 transition-opacity duration-500 ${theme === "dark" ? "opacity-0" : "opacity-100"}`} />
+          <img src={heroNightImage} alt="Монгол шөнө" className={`absolute inset-0 w-full h-full object-cover scale-105 transition-opacity duration-500 ${theme === "dark" ? "opacity-100" : "opacity-0"}`} />
           <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-black/20" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/10" />
         </div>
