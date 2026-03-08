@@ -177,6 +177,8 @@ const DriverDashboard: React.FC = () => {
 
       await setDoc(doc(db, "drivers", user.uid), {
         userId: user.uid,
+        driverName: profile?.name || "",
+        driverPhone: profile?.phone || "",
         vehicleType,
         vehiclePlate: fullPlate,
         licenseNumber,
