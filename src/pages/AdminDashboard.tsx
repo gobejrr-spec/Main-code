@@ -479,6 +479,15 @@ const AdminDashboard: React.FC = () => {
                               Дахин зөвшөөрөх
                             </Button>
                           )}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-xs text-destructive border-destructive/30 hover:bg-destructive/10"
+                            disabled={actionLoading === d.id}
+                            onClick={() => setDeleteConfirm({ id: d.id, name: d.userLastName ? `${d.userLastName} ${d.userName}` : d.userName || d.userId })}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
                         </div>
                       </div>
 
