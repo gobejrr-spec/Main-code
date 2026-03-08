@@ -25,6 +25,7 @@ const Register: React.FC = () => {
     name: "",
     lastName: "",
     plateNo: "",
+    registerNo: "",
     email: "",
     phone: "",
     password: "",
@@ -155,6 +156,7 @@ const Register: React.FC = () => {
       await setDoc(doc(db, "users", cred.user.uid), {
         name: form.name,
         ...(form.role === "driver" ? { lastName: form.lastName } : {}),
+        registerNo: form.registerNo,
         phone: form.phone,
         role: form.role,
         language,
@@ -267,6 +269,22 @@ const Register: React.FC = () => {
                 <Input value={form.name} onChange={(e) => update("name", e.target.value)} required className="h-11" placeholder="Name / Нэр" />
               </div>
             )}
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Регистрийн дугаар</Label>
+              <Input
+                value={form.registerNo}
+                onChange={(e) => {
+                  const val = e.target.value.toUpperCase().slice(0, 10);
+                  update("registerNo", val);
+                }}
+                required
+                className="h-11"
+                placeholder="УБ12345678"
+                maxLength={10}
+              />
+              <p className="text-xs text-muted-foreground">2 кирилл үсэг + 8 тоо</p>
+            </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
