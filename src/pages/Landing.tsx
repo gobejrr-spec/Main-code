@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { Search, MapPin, Shield, ArrowRight, Car, Users, Clock, Star, Sparkles, Loader2, CheckCircle, Phone, CreditCard, Compass, Route, Zap } from "lucide-react";
+import { Search, MapPin, Shield, ArrowRight, Car, Users, Clock, Star, Loader2, CheckCircle, Phone, CreditCard, Compass, Route, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-landscape.jpg";
 import heroNightImage from "@/assets/hero-night.jpg";
