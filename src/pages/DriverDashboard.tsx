@@ -44,17 +44,6 @@ const CAR_BRANDS: Record<string, string[]> = {
   "Бусад": ["Бусад"],
 };
 
-const PHOTO_LABELS = [
-  { key: "idFront", label: "Иргэний үнэмлэх (Урд)" },
-  { key: "idBack", label: "Иргэний үнэмлэх (Ар)" },
-  { key: "vehicleRegistration", label: "ТХ гэрчилгээ" },
-  { key: "carFront", label: "Машин (Урд)" },
-  { key: "carBack", label: "Машин (Хойд)" },
-  { key: "carLeft", label: "Машин (Зүүн)" },
-  { key: "carRight", label: "Машин (Баруун)" },
-  { key: "carInterior", label: "Дотор зураг" },
-];
-
 const PLATE_SUFFIXES = [
   { code: "УБА", label: "Улаанбаатар" }, { code: "УБЕ", label: "Улаанбаатар" },
   { code: "УБИ", label: "Улаанбаатар" }, { code: "УБО", label: "Улаанбаатар" },
@@ -82,7 +71,6 @@ const DriverDashboard: React.FC = () => {
   const [verificationStatus, setVerificationStatus] = useState<string>("none");
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
-  // Trip form state
   const [tripFrom, setTripFrom] = useState("");
   const [tripTo, setTripTo] = useState("");
   const [tripDate, setTripDate] = useState("");
@@ -92,7 +80,6 @@ const DriverDashboard: React.FC = () => {
   const [carType, setCarType] = useState("");
   const [pricePerKm, setPricePerKm] = useState<number>(150);
 
-  // Driver document fields
   const [selectedBrand, setSelectedBrand] = useState("");
   const [selectedModel, setSelectedModel] = useState("");
   const [vehiclePlate, setVehiclePlate] = useState("");
@@ -101,11 +88,21 @@ const DriverDashboard: React.FC = () => {
   const [licenseNumber, setLicenseNumber] = useState("");
   const [driverEmail, setDriverEmail] = useState("");
 
-  // Photo uploads
   const [photos, setPhotos] = useState<Record<string, File | null>>({});
   const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
   const [uploadingDocs, setUploadingDocs] = useState(false);
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  const PHOTO_LABELS = [
+    { key: "idFront", label: t("idFront") },
+    { key: "idBack", label: t("idBack") },
+    { key: "vehicleRegistration", label: t("vehicleRegistration") },
+    { key: "carFront", label: t("carFront") },
+    { key: "carBack", label: t("carBack") },
+    { key: "carLeft", label: t("carLeft") },
+    { key: "carRight", label: t("carRight") },
+    { key: "carInterior", label: t("carInterior") },
+  ];
 
   useEffect(() => {
     const fetchData = async () => {
@@ -141,7 +138,6 @@ const DriverDashboard: React.FC = () => {
     fetchData();
   }, [user]);
 
-  // Real-time listener for verification status changes
   useEffect(() => {
     if (!user) return;
     const unsubscribe = onSnapshot(doc(db, "drivers", user.uid), (docSnap) => {
@@ -165,7 +161,6 @@ const DriverDashboard: React.FC = () => {
     return () => unsubscribe();
   }, [user]);
 
-  // Fetch platform price per km
   useEffect(() => {
     const fetchSettings = async () => {
       try {
@@ -178,7 +173,6 @@ const DriverDashboard: React.FC = () => {
     fetchSettings();
   }, []);
 
-  // Auto-calculate price when from/to changes
   useEffect(() => {
     if (tripFrom && tripTo) {
       const dist = getDistanceKm(tripFrom, tripTo);
@@ -201,7 +195,6 @@ const DriverDashboard: React.FC = () => {
 
   const removePhoto = (key: string) => {
     setPhotos(prev => { const n = { ...prev }; delete n[key]; return n; });
-    // Also clear the URL if it was previously uploaded
     setPhotoUrls(prev => { const n = { ...prev }; delete n[key]; return n; });
   };
 
@@ -210,7 +203,7 @@ const DriverDashboard: React.FC = () => {
   const handleSubmitVerification = async () => {
     if (!user) return;
     if (!vehicleType || (!fullPlate) || !licenseNumber) {
-      toast.error("Тээврийн хэрэгсэл, улсын дугаар, жолоочийн үнэмлэхийн дугаар бөглөнө үү");
+      toast.error(t("vehicleDocPlateRequired"));
       return;
     }
     setUploadingDocs(true);
@@ -243,13 +236,13 @@ const DriverDashboard: React.FC = () => {
       setPhotos({});
       setVerificationStatus("pending");
       setHasSubmitted(true);
-      toast.success("Бичиг баримтууд амжилттай илгээгдлээ! Админ шалгаж баталгаажуулна.");
+      toast.success(t("docsSubmitSuccess"));
     } catch (err: any) {
       console.error(err);
       if (err?.code === "storage/unauthorized") {
-        toast.error("Firebase Storage зөвшөөрөл тохируулаагүй байна. Firebase Console → Storage → Rules дээр зөвшөөрөл нэмнэ үү.");
+        toast.error(t("storageError"));
       } else {
-        toast.error("Алдаа гарлаа. Дахин оролдоно уу.");
+        toast.error(t("genericError"));
       }
     } finally {
       setUploadingDocs(false);
@@ -258,7 +251,7 @@ const DriverDashboard: React.FC = () => {
 
   const handleCreateTrip = async () => {
     if (!user || !tripFrom || !tripTo || !tripDate || !tripTime || !tripSeats || !tripPrice) {
-      toast.error("Бүх талбарыг бөглөнө үү");
+      toast.error(t("fillAllFields"));
       return;
     }
     setSubmitting(true);
@@ -277,7 +270,7 @@ const DriverDashboard: React.FC = () => {
         status: "pending",
         createdAt: serverTimestamp(),
       });
-      toast.success("Аялал амжилттай илгээгдлээ!");
+      toast.success(t("tripSubmitSuccess"));
       setShowCreateTrip(false);
       setTripFrom(""); setTripTo(""); setTripDate(""); setTripTime(""); setTripSeats(""); setTripPrice(""); setCarType("");
       const q = query(collection(db, "trips"), where("driverId", "==", user.uid));
@@ -285,7 +278,7 @@ const DriverDashboard: React.FC = () => {
       setTrips(snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Trip)));
     } catch (err) {
       console.error(err);
-      toast.error("Алдаа гарлаа");
+      toast.error(t("errorOccurred"));
     } finally {
       setSubmitting(false);
     }
@@ -296,47 +289,47 @@ const DriverDashboard: React.FC = () => {
       <div className="container mx-auto px-4 max-w-4xl">
         <div className="mb-8 animate-fade-in">
           <div className="inline-flex items-center gap-2 bg-primary/10 text-primary text-xs font-semibold px-3 py-1 rounded-full mb-3">
-            <MapPin className="h-3 w-3" /> ЖОЛООЧ
+            <MapPin className="h-3 w-3" /> {t("driverLabel")}
           </div>
           <h1 className="font-heading text-3xl font-bold">
-            {profile?.name ? `Сайн байна уу, ${profile.name}` : t("dashboard")}
+            {profile?.name ? `${t("hello")}, ${profile.name}` : t("dashboard")}
           </h1>
-          <p className="text-muted-foreground mt-1">Аялалаа удирдах самбар</p>
+          <p className="text-muted-foreground mt-1">{t("driverDashboardSubtitle")}</p>
         </div>
 
-        {/* STATE 1: Pending - Waiting for admin approval */}
+        {/* STATE 1: Pending */}
         {isPending && !isRejected && (
           <div className="animate-fade-in text-center py-16">
             <div className="w-20 h-20 rounded-full bg-warning/10 flex items-center justify-center mx-auto mb-6">
               <Hourglass className="h-10 w-10 text-warning animate-pulse" />
             </div>
-            <h2 className="font-heading text-2xl font-bold mb-2">Баталгаажуулалт хүлээгдэж байна</h2>
+            <h2 className="font-heading text-2xl font-bold mb-2">{t("verificationWaiting")}</h2>
             <p className="text-muted-foreground max-w-md mx-auto mb-4">
-              Таны бичиг баримтууд амжилттай илгээгдсэн. Админ шалгаж баталгаажуулсны дараа та аялал оруулах боломжтой болно.
+              {t("verificationWaitingDesc")}
             </p>
             <div className="inline-flex items-center gap-2 bg-warning/10 text-warning text-sm font-medium px-4 py-2 rounded-full mb-4">
               <Loader2 className="h-4 w-4 animate-spin" />
-              Хянагдаж байна...
+              {t("beingReviewed")}
             </div>
             <div>
               <Button variant="outline" size="sm" onClick={() => setHasSubmitted(false)}>
-                Дахин засах
+                {t("editAgain")}
               </Button>
             </div>
           </div>
         )}
 
-        {/* STATE 2: Rejected or Not submitted - Show verification form */}
+        {/* STATE 2: Rejected or Not submitted */}
         {needsSubmission && (
           <>
             <div className="glass-card-elevated rounded-2xl p-5 mb-6 border-l-4 border-warning flex items-start gap-3 animate-fade-in">
               <AlertCircle className="h-5 w-5 text-warning mt-0.5" />
               <div>
                 <p className="font-medium text-sm">
-                  {isRejected ? "Баталгаажуулалт татгалзсан. Дахин илгээнэ үү." : t("verificationPending")}
+                  {isRejected ? t("verificationRejectedMsg") : t("verificationPending")}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Бичиг баримт, зургуудаа байршуулж баталгаажуулна уу.
+                  {t("uploadDocsMsg")}
                 </p>
               </div>
             </div>
@@ -346,14 +339,12 @@ const DriverDashboard: React.FC = () => {
                 <Shield className="h-5 w-5 text-primary" /> {t("verification")}
               </h2>
 
-              {/* Document info fields */}
               <div className="grid sm:grid-cols-2 gap-4 mb-6">
-                {/* Vehicle Brand */}
                 <div className="space-y-2">
-                  <Label>Машины брэнд *</Label>
+                  <Label>{t("carBrand")} *</Label>
                   <Select value={selectedBrand} onValueChange={(val) => { setSelectedBrand(val); setSelectedModel(""); }}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Брэнд сонгох" />
+                      <SelectValue placeholder={t("selectBrand")} />
                     </SelectTrigger>
                     <SelectContent className="max-h-60">
                       {Object.keys(CAR_BRANDS).map(brand => (
@@ -363,12 +354,11 @@ const DriverDashboard: React.FC = () => {
                   </Select>
                 </div>
 
-                {/* Vehicle Model */}
                 <div className="space-y-2">
-                  <Label>Машины модел *</Label>
+                  <Label>{t("carModel")} *</Label>
                   <Select value={selectedModel} onValueChange={setSelectedModel} disabled={!selectedBrand}>
                     <SelectTrigger>
-                      <SelectValue placeholder={selectedBrand ? "Модел сонгох" : "Эхлээд брэнд сонгоно уу"} />
+                      <SelectValue placeholder={selectedBrand ? t("selectModel") : t("selectBrandFirst")} />
                     </SelectTrigger>
                     <SelectContent className="max-h-60">
                       {selectedBrand && CAR_BRANDS[selectedBrand]?.map(model => (
@@ -378,9 +368,8 @@ const DriverDashboard: React.FC = () => {
                   </Select>
                 </div>
 
-                {/* License Plate */}
                 <div className="space-y-2">
-                  <Label>Улсын дугаар *</Label>
+                  <Label>{t("plateNumber")} *</Label>
                   <Input
                     placeholder="8332УБА"
                     value={plateNumber}
@@ -393,12 +382,11 @@ const DriverDashboard: React.FC = () => {
                     className="uppercase"
                     maxLength={7}
                   />
-                  <p className="text-[11px] text-muted-foreground">4 тоо + 3 кирилл үсэг</p>
+                  <p className="text-[11px] text-muted-foreground">{t("plateHint")}</p>
                 </div>
 
-                {/* License Number */}
                 <div className="space-y-2">
-                  <Label>Жолоочийн үнэмлэхийн дугаар *</Label>
+                  <Label>{t("driverLicenseNo")} *</Label>
                   <Input
                     placeholder="00000000"
                     value={licenseNumber}
@@ -411,8 +399,7 @@ const DriverDashboard: React.FC = () => {
                 </div>
               </div>
 
-              {/* Photo uploads */}
-              <h3 className="font-medium text-sm mb-3">Зургууд байршуулах</h3>
+              <h3 className="font-medium text-sm mb-3">{t("uploadPhotos")}</h3>
               <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-3">
                 {PHOTO_LABELS.map(({ key, label }) => {
                   const preview = photos[key] ? URL.createObjectURL(photos[key]!) : photoUrls[key];
@@ -463,59 +450,58 @@ const DriverDashboard: React.FC = () => {
                 disabled={uploadingDocs || !selectedBrand || !selectedModel || plateNumber.length < 7 || !licenseNumber}
               >
                 {uploadingDocs ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
-                Илгээх
+                {t("submitBtn")}
               </Button>
             </div>
           </>
         )}
 
-        {/* STATE 3: Verified - Show trip creation */}
+        {/* STATE 3: Verified */}
         {isVerified && (
           <div className="glass-card-elevated rounded-2xl p-5 mb-6 border-l-4 border-success flex items-start gap-3 animate-fade-in">
             <CheckCircle className="h-5 w-5 text-success mt-0.5" />
             <div>
-              <p className="font-medium text-sm text-success">Баталгаажсан жолооч</p>
-              <p className="text-xs text-muted-foreground mt-1">Та аялал оруулж болно</p>
+              <p className="font-medium text-sm text-success">{t("verifiedDriverStatus")}</p>
+              <p className="text-xs text-muted-foreground mt-1">{t("canPostTrips")}</p>
             </div>
           </div>
         )}
 
-        {/* Trip section - only visible when verified */}
         {isVerified && (
           <div className="flex items-center justify-between mb-4 animate-fade-in" style={{ animationDelay: "200ms" }}>
-            <h2 className="font-heading font-semibold text-xl">Миний аялалууд</h2>
+            <h2 className="font-heading font-semibold text-xl">{t("myTripsSection")}</h2>
             <Button size="sm" onClick={() => setShowCreateTrip(!showCreateTrip)} className="hover-scale">
-              <Plus className="mr-2 h-4 w-4" /> Аялал үүсгэх
+              <Plus className="mr-2 h-4 w-4" /> {t("createTripBtn")}
             </Button>
           </div>
         )}
 
         {showCreateTrip && isVerified && (
           <div className="glass-card-elevated rounded-2xl p-6 mb-6 animate-fade-in">
-            <h3 className="font-heading font-semibold mb-4">Шинэ аялал үүсгэх</h3>
+            <h3 className="font-heading font-semibold mb-4">{t("newTrip")}</h3>
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Хаанаас</Label>
-                <LocationSelect value={tripFrom} onChange={setTripFrom} placeholder="Аймаг сонгох" iconColor="text-primary" />
+                <Label>{t("fromSelect")}</Label>
+                <LocationSelect value={tripFrom} onChange={setTripFrom} placeholder={t("selectProvince")} iconColor="text-primary" />
               </div>
               <div className="space-y-2">
-                <Label>Хаашаа</Label>
-                <LocationSelect value={tripTo} onChange={setTripTo} placeholder="Аймаг сонгох" iconColor="text-accent" />
+                <Label>{t("toSelect")}</Label>
+                <LocationSelect value={tripTo} onChange={setTripTo} placeholder={t("selectProvince")} iconColor="text-accent" />
               </div>
               <div className="space-y-2">
-                <Label>Огноо</Label>
+                <Label>{t("dateInput")}</Label>
                 <Input type="date" value={tripDate} onChange={(e) => setTripDate(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label>Цаг</Label>
+                <Label>{t("timeInput")}</Label>
                 <Input type="time" value={tripTime} onChange={(e) => setTripTime(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label>Суудлын тоо</Label>
+                <Label>{t("seatCount")}</Label>
                 <Input type="number" min="1" max="10" placeholder="4" value={tripSeats} onChange={(e) => setTripSeats(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label>Үнэ (₮) — автомат тооцоолол</Label>
+                <Label>{t("priceAuto")}</Label>
                 <Input type="number" placeholder="25000" value={tripPrice} onChange={(e) => setTripPrice(e.target.value)} />
                 {tripFrom && tripTo && getDistanceKm(tripFrom, tripTo) && (
                   <p className="text-xs text-muted-foreground">
@@ -527,14 +513,13 @@ const DriverDashboard: React.FC = () => {
             <div className="flex gap-3 mt-5">
               <Button onClick={handleCreateTrip} disabled={submitting} className="hover-scale">
                 {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                Нийтлэх
+                {t("publish")}
               </Button>
-              <Button variant="outline" onClick={() => setShowCreateTrip(false)}>Болих</Button>
+              <Button variant="outline" onClick={() => setShowCreateTrip(false)}>{t("stopAction")}</Button>
             </div>
           </div>
         )}
 
-        {/* Trip List - only when verified */}
         {isVerified && (
           <>
             {loading ? (
@@ -546,8 +531,8 @@ const DriverDashboard: React.FC = () => {
                 <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
                   <MapPin className="h-8 w-8 text-muted-foreground/40" />
                 </div>
-                <p className="text-muted-foreground font-medium">Аялал байхгүй байна</p>
-                <p className="text-sm text-muted-foreground/70 mt-1">Шинэ аялал үүсгэж эхлээрэй</p>
+                <p className="text-muted-foreground font-medium">{t("noTripsYet")}</p>
+                <p className="text-sm text-muted-foreground/70 mt-1">{t("startCreatingTrips")}</p>
               </div>
             ) : (
               <div className="space-y-3 animate-stagger">
@@ -564,7 +549,7 @@ const DriverDashboard: React.FC = () => {
                         <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
                           <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {trip.date}</span>
                           <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {trip.time}</span>
-                          <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {trip.seats} суудал</span>
+                          <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {trip.seats} {t("seats")}</span>
                         </div>
                       </div>
                     </div>
@@ -577,7 +562,7 @@ const DriverDashboard: React.FC = () => {
                           ? "bg-destructive/10 text-destructive"
                           : "bg-warning/10 text-warning"
                       }`}>
-                        {trip.status === "approved" ? "Зөвшөөрсөн" : trip.status === "rejected" ? "Татгалзсан" : "Хүлээгдэж буй"}
+                        {trip.status === "approved" ? t("approved") : trip.status === "rejected" ? t("rejected") : t("pending")}
                       </span>
                     </div>
                   </div>

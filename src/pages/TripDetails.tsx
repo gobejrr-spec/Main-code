@@ -52,7 +52,6 @@ const TripDetails: React.FC = () => {
           const data = docSnap.data() as TripData;
           if (data.status === "approved") {
             setTrip(data);
-            // Fetch driver details from drivers collection
             try {
               const driverDoc = await getDoc(doc(db, "drivers", data.driverId));
               if (driverDoc.exists()) {
@@ -61,7 +60,6 @@ const TripDetails: React.FC = () => {
             } catch (dErr) {
               console.warn("Could not fetch driver info:", dErr);
             }
-            // Try to get booked seats count
             try {
               const bookingsSnap = await getCountFromServer(
                 query(collection(db, "bookings"), where("tripId", "==", id), where("status", "==", "confirmed"))
@@ -71,7 +69,6 @@ const TripDetails: React.FC = () => {
               console.warn("Could not fetch bookings count:", bookingErr);
               setBookedSeats(0);
             }
-            // Fetch platform settings for price per km
             try {
               const settingsDoc = await getDoc(doc(db, "settings", "platform"));
               if (settingsDoc.exists() && settingsDoc.data().pricePerKm) {
@@ -95,12 +92,12 @@ const TripDetails: React.FC = () => {
 
   const handleBook = async () => {
     if (!user) {
-      toast.info("Нэвтрэх шаардлагатай");
+      toast.info(t("loginRequired"));
       navigate("/login");
       return;
     }
     if (remainingSeats <= 0) {
-      toast.error("Суудал дууссан байна");
+      toast.error(t("seatsFulled"));
       return;
     }
     setBooking(true);
@@ -110,17 +107,17 @@ const TripDetails: React.FC = () => {
       await addDoc(collection(db, "bookings"), {
         userId: user.uid,
         tripId: id,
-        passengerName: userData.name || "Зорчигч",
+        passengerName: userData.name || t("passenger"),
         passengerPhone: userData.phone || "",
         seats: 1,
         status: "confirmed",
         createdAt: serverTimestamp(),
       });
-      toast.success("Захиалга амжилттай!");
+      toast.success(t("bookingSuccess"));
       setBookedSeats((prev) => prev + 1);
     } catch (err) {
       console.error("Booking error:", err);
-      toast.error("Захиалга амжилтгүй");
+      toast.error(t("bookingFailed"));
     } finally {
       setBooking(false);
     }
@@ -151,15 +148,14 @@ const TripDetails: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background pt-20 pb-10">
-      {/* Top gradient accent */}
       <div className="absolute top-0 left-0 right-0 h-72 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
       
       <div className="container mx-auto px-4 max-w-2xl relative z-10">
         <Link to="/trips" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8 group">
-          <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" /> Буцах
+          <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" /> {t("goBack")}
         </Link>
 
-        <h1 className="font-heading text-3xl font-bold mb-8 animate-fade-in">Аялалын дэлгэрэнгүй</h1>
+        <h1 className="font-heading text-3xl font-bold mb-8 animate-fade-in">{t("tripDetailTitle")}</h1>
 
         <div className="space-y-5 animate-fade-in" style={{ animationDelay: "100ms" }}>
           {/* Route Card */}
@@ -172,11 +168,11 @@ const TripDetails: React.FC = () => {
               </div>
               <div className="flex-1 space-y-5">
                 <div>
-                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Хаанаас</p>
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{t("fromLabel")}</p>
                   <p className="font-heading font-bold text-xl mt-1">{trip.from}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Хаашаа</p>
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{t("toLabel")}</p>
                   <p className="font-heading font-bold text-xl mt-1">{trip.to}</p>
                 </div>
               </div>
@@ -187,7 +183,7 @@ const TripDetails: React.FC = () => {
                   <Navigation className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground font-medium">Ойролцоо зай</p>
+                  <p className="text-xs text-muted-foreground font-medium">{t("approxDistance")}</p>
                   <p className="font-heading font-bold text-lg">{distanceKm} км</p>
                 </div>
               </div>
@@ -201,7 +197,7 @@ const TripDetails: React.FC = () => {
                 <Calendar className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Огноо</p>
+                <p className="text-xs text-muted-foreground">{t("dateLabel")}</p>
                 <p className="text-sm font-semibold mt-0.5">{trip.date}</p>
               </div>
             </div>
@@ -210,7 +206,7 @@ const TripDetails: React.FC = () => {
                 <Clock className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Хөдлөх цаг</p>
+                <p className="text-xs text-muted-foreground">{t("departureTimeLabel")}</p>
                 <p className="text-sm font-semibold mt-0.5">{trip.time}</p>
               </div>
             </div>
@@ -219,7 +215,7 @@ const TripDetails: React.FC = () => {
                 <Users className="h-5 w-5 text-success" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Үлдсэн суудал</p>
+                <p className="text-xs text-muted-foreground">{t("remainingSeats")}</p>
                 <p className={`text-sm font-bold mt-0.5 ${remainingSeats <= 1 ? "text-destructive" : "text-success"}`}>
                   {remainingSeats} / {trip.seats}
                 </p>
@@ -230,7 +226,7 @@ const TripDetails: React.FC = () => {
                 <CreditCard className="h-5 w-5 text-secondary" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Тооцоолсон үнэ</p>
+                <p className="text-xs text-muted-foreground">{t("calculatedPrice")}</p>
                 <p className="text-sm font-bold text-primary mt-0.5">
                   {calculatedPrice ? `${calculatedPrice.toLocaleString()}₮` : `${trip.price.toLocaleString()}₮`}
                 </p>
@@ -245,7 +241,7 @@ const TripDetails: React.FC = () => {
           <div className="glass-card-elevated rounded-2xl p-7">
             <h3 className="font-heading font-semibold text-lg mb-5 flex items-center gap-2">
               <User className="h-5 w-5 text-primary" />
-              Жолоочийн мэдээлэл
+              {t("driverInfoTitle")}
             </h3>
             <div className="flex items-center gap-4 mb-5">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/15 to-accent/15 flex items-center justify-center">
@@ -256,7 +252,7 @@ const TripDetails: React.FC = () => {
                   {driverInfo?.driverLastName ? `${driverInfo.driverLastName} ` : ""}{trip.driverName}
                 </p>
                 <div className="inline-flex items-center gap-1.5 text-xs text-success mt-1.5 bg-success/8 px-2.5 py-1 rounded-full">
-                  <Shield className="h-3 w-3" /> Баталгаажсан жолооч
+                  <Shield className="h-3 w-3" /> {t("verifiedDriverBadge")}
                 </div>
               </div>
             </div>
@@ -264,28 +260,28 @@ const TripDetails: React.FC = () => {
               <div className="flex items-center gap-3 p-3.5 rounded-xl bg-muted/40 hover:bg-muted/60 transition-colors">
                 <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 <div className="min-w-0">
-                  <p className="text-[11px] text-muted-foreground">Утас</p>
+                  <p className="text-[11px] text-muted-foreground">{t("phoneLabel")}</p>
                   <p className="text-sm font-medium truncate">{trip.driverPhone || "—"}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3.5 rounded-xl bg-muted/40 hover:bg-muted/60 transition-colors">
                 <Car className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 <div className="min-w-0">
-                  <p className="text-[11px] text-muted-foreground">Машин</p>
+                  <p className="text-[11px] text-muted-foreground">{t("carLabel")}</p>
                   <p className="text-sm font-medium truncate">{driverInfo?.vehicleType || trip.carType || "—"}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3.5 rounded-xl bg-muted/40 hover:bg-muted/60 transition-colors">
                 <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 <div className="min-w-0">
-                  <p className="text-[11px] text-muted-foreground">Улсын дугаар</p>
+                  <p className="text-[11px] text-muted-foreground">{t("plateNo")}</p>
                   <p className="text-sm font-medium truncate">{driverInfo?.vehiclePlate || "—"}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3.5 rounded-xl bg-muted/40 hover:bg-muted/60 transition-colors">
                 <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 <div className="min-w-0">
-                  <p className="text-[11px] text-muted-foreground">Жолоочийн үнэмлэх</p>
+                  <p className="text-[11px] text-muted-foreground">{t("driverLicense")}</p>
                   <p className="text-sm font-medium truncate">{driverInfo?.licenseNumber || "—"}</p>
                 </div>
               </div>
@@ -302,9 +298,9 @@ const TripDetails: React.FC = () => {
             {booking ? (
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
             ) : remainingSeats <= 0 ? (
-              "Суудал дууссан"
+              t("seatsFulled")
             ) : (
-              <>Захиалах — {trip.price.toLocaleString()}₮</>
+              <>{t("bookAction")} — {trip.price.toLocaleString()}₮</>
             )}
           </Button>
         </div>

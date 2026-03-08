@@ -4,6 +4,7 @@ import {
 } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   Users, Car, MapPin, CheckCircle, Shield, AlertTriangle, MessageSquare,
   Loader2, Trash2, Eye, Clock, UserPlus, XCircle, Ban, RefreshCw,
@@ -61,19 +62,9 @@ interface Complaint {
   createdAt: any;
 }
 
-const PHOTO_LABELS: Record<string, string> = {
-  idFront: "Иргэний үнэмлэх (Урд)",
-  idBack: "Иргэний үнэмлэх (Ар)",
-  vehicleRegistration: "ТХ гэрчилгээ",
-  carFront: "Машин (Урд)",
-  carBack: "Машин (Хойд)",
-  carLeft: "Машин (Зүүн)",
-  carRight: "Машин (Баруун)",
-  carInterior: "Дотор",
-};
-
 const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ users: 0, drivers: 0, trips: 0, completed: 0 });
   const [allUsers, setAllUsers] = useState<UserRecord[]>([]);
@@ -88,13 +79,22 @@ const AdminDashboard: React.FC = () => {
   const [pricePerKm, setPricePerKm] = useState<number>(150);
   const [savingSettings, setSavingSettings] = useState(false);
 
+  const PHOTO_LABELS: Record<string, string> = {
+    idFront: t("idFront"),
+    idBack: t("idBack"),
+    vehicleRegistration: t("vehicleRegistration"),
+    carFront: t("carFront"),
+    carBack: t("carBack"),
+    carLeft: t("carLeft"),
+    carRight: t("carRight"),
+    carInterior: t("carInterior"),
+  };
+
   const fetchData = useCallback(async () => {
     if (!auth.currentUser) {
-      console.error("Auth: Хэрэглэгч нэвтрээгүй байна!", auth.currentUser);
       setLoading(false);
       return;
     }
-    console.log("Auth: Нэвтэрсэн хэрэглэгч:", auth.currentUser.uid, auth.currentUser.email);
     setLoading(true);
     try {
       const [usersSnap, driversSnap, tripsSnap, completedSnap] = await Promise.all([
@@ -153,7 +153,6 @@ const AdminDashboard: React.FC = () => {
       });
       setComplaints(complaintsList);
 
-      // Fetch settings
       try {
         const settingsDoc = await getDoc(doc(db, "settings", "platform"));
         if (settingsDoc.exists()) {
@@ -178,10 +177,10 @@ const AdminDashboard: React.FC = () => {
     try {
       await updateDoc(doc(db, "users", userId), { role: "admin" });
       setAllUsers(prev => prev.map(u => u.id === userId ? { ...u, role: "admin" } : u));
-      toast.success("Admin эрх олголоо!");
+      toast.success(t("adminRightsGranted"));
     } catch (err) {
       console.error(err);
-      toast.error("Алдаа гарлаа");
+      toast.error(t("errorOccurred"));
     } finally { setActionLoading(null); }
   };
 
@@ -190,10 +189,10 @@ const AdminDashboard: React.FC = () => {
     try {
       await deleteDoc(doc(db, "users", userId));
       setAllUsers(prev => prev.filter(u => u.id !== userId));
-      toast.success("Хэрэглэгч устгагдлаа");
+      toast.success(t("deleteSuccess"));
     } catch (err) {
       console.error(err);
-      toast.error("Устгах амжилтгүй");
+      toast.error(t("deleteFailed"));
     } finally {
       setActionLoading(null);
       setDeleteConfirm(null);
@@ -205,10 +204,10 @@ const AdminDashboard: React.FC = () => {
     try {
       await updateDoc(doc(db, "users", userId), { role: newRole });
       setAllUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
-      toast.success(`Үүрэг "${newRole}" болгож шинэчиллээ`);
+      toast.success(`${t("roleUpdated")} "${newRole}"`);
     } catch (err) {
       console.error(err);
-      toast.error("Алдаа гарлаа");
+      toast.error(t("errorOccurred"));
     } finally { setActionLoading(null); }
   };
 
@@ -222,10 +221,10 @@ const AdminDashboard: React.FC = () => {
         setAllUsers(prev => prev.map(u => u.id === driver.userId ? { ...u, role: "driver" } : u));
       }
       setAllDrivers(prev => prev.map(d => d.id === driverId ? { ...d, verificationStatus: status } : d));
-      toast.success(status === "approved" ? "Жолооч зөвшөөрөгдлөө!" : "Жолооч татгалзсан");
+      toast.success(status === "approved" ? t("driverApproved") : t("driverRejected"));
     } catch (err) {
       console.error(err);
-      toast.error("Алдаа гарлаа");
+      toast.error(t("errorOccurred"));
     } finally { setActionLoading(null); }
   };
 
@@ -239,10 +238,10 @@ const AdminDashboard: React.FC = () => {
         setAllUsers(prev => prev.map(u => u.id === driver.userId ? { ...u, role: "passenger" } : u));
       }
       setAllDrivers(prev => prev.filter(d => d.id !== driverId));
-      toast.success("Жолоочийн бүртгэл устгагдлаа");
+      toast.success(t("deleteSuccess"));
     } catch (err) {
       console.error(err);
-      toast.error("Устгах амжилтгүй");
+      toast.error(t("deleteFailed"));
     } finally {
       setActionLoading(null);
       setDeleteConfirm(null);
@@ -255,12 +254,12 @@ const AdminDashboard: React.FC = () => {
       await updateDoc(doc(db, "trips", tripId), { status });
       setAllTrips(prev => prev.map(t => t.id === tripId ? { ...t, status } : t));
       toast.success(
-        status === "approved" ? "Аялал зөвшөөрөгдлөө!" :
-        status === "cancelled" ? "Аялал цуцлагдлаа!" : "Аялал татгалзсан"
+        status === "approved" ? t("tripApproved") :
+        status === "cancelled" ? t("tripCancelled") : t("tripRejected")
       );
     } catch (err) {
       console.error(err);
-      toast.error("Алдаа гарлаа");
+      toast.error(t("errorOccurred"));
     } finally { setActionLoading(null); }
   };
 
@@ -269,10 +268,10 @@ const AdminDashboard: React.FC = () => {
     try {
       await deleteDoc(doc(db, "complaints", complaintId));
       setComplaints(prev => prev.filter(c => c.id !== complaintId));
-      toast.success("Гомдол устгагдлаа");
+      toast.success(t("complaintDeleted"));
     } catch (err) {
       console.error(err);
-      toast.error("Устгах амжилтгүй");
+      toast.error(t("deleteFailed"));
     } finally { setActionLoading(null); }
   };
 
@@ -280,29 +279,29 @@ const AdminDashboard: React.FC = () => {
   const pendingTrips = allTrips.filter(t => t.status === "pending");
 
   const statCards = [
-    { icon: Users, label: "Нийт хэрэглэгчид", value: stats.users, color: "from-primary to-primary-glow" },
-    { icon: Car, label: "Нийт жолоочид", value: stats.drivers, color: "from-secondary to-warning" },
-    { icon: MapPin, label: "Нийт аялалууд", value: stats.trips, color: "from-accent to-success" },
-    { icon: CheckCircle, label: "Дууссан аялалууд", value: stats.completed, color: "from-success to-accent" },
+    { icon: Users, label: t("totalUsers"), value: stats.users, color: "from-primary to-primary-glow" },
+    { icon: Car, label: t("totalDrivers"), value: stats.drivers, color: "from-secondary to-warning" },
+    { icon: MapPin, label: t("totalTrips"), value: stats.trips, color: "from-accent to-success" },
+    { icon: CheckCircle, label: t("completedTrips"), value: stats.completed, color: "from-success to-accent" },
   ];
 
   const tabs = [
-    { key: "users" as const, label: "Хэрэглэгчид", icon: Users, count: allUsers.length },
-    { key: "drivers" as const, label: "Жолоочид", icon: Car, count: allDrivers.length, badge: pendingDrivers.length },
-    { key: "pendingtrips" as const, label: "Хүлээгдэж буй аялал", icon: Clock, count: pendingTrips.length },
-    { key: "alltrips" as const, label: "Бүх аялал", icon: MapPin, count: allTrips.length },
-    { key: "complaints" as const, label: "Гомдлууд", icon: MessageSquare, count: complaints.length },
-    { key: "settings" as const, label: "Тохиргоо", icon: Settings, count: 0 },
+    { key: "users" as const, label: t("usersTab"), icon: Users, count: allUsers.length },
+    { key: "drivers" as const, label: t("driversTab"), icon: Car, count: allDrivers.length, badge: pendingDrivers.length },
+    { key: "pendingtrips" as const, label: t("pendingTripsTab"), icon: Clock, count: pendingTrips.length },
+    { key: "alltrips" as const, label: t("allTripsTab"), icon: MapPin, count: allTrips.length },
+    { key: "complaints" as const, label: t("complaintsTab"), icon: MessageSquare, count: complaints.length },
+    { key: "settings" as const, label: t("settingsTab"), icon: Settings, count: 0 },
   ];
 
   const handleSaveSettings = async () => {
     setSavingSettings(true);
     try {
       await setDoc(doc(db, "settings", "platform"), { pricePerKm }, { merge: true });
-      toast.success("Тохиргоо хадгалагдлаа!");
+      toast.success(t("settingsSaved"));
     } catch (err) {
       console.error(err);
-      toast.error("Тохиргоо хадгалах амжилтгүй");
+      toast.error(t("settingsSaveFailed"));
     } finally {
       setSavingSettings(false);
     }
@@ -317,8 +316,8 @@ const AdminDashboard: React.FC = () => {
       completed: "bg-primary/10 text-primary",
     };
     const labelMap: Record<string, string> = {
-      approved: "Зөвшөөрсөн", pending: "Хүлээгдэж буй", rejected: "Татгалзсан",
-      cancelled: "Цуцлагдсан", completed: "Дууссан",
+      approved: t("approved"), pending: t("pending"), rejected: t("rejected"),
+      cancelled: t("cancelled"), completed: t("completed"),
     };
     return (
       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${map[status] || "bg-muted text-muted-foreground"}`}>
@@ -344,7 +343,7 @@ const AdminDashboard: React.FC = () => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center pt-16">
         <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
-        <p className="text-muted-foreground">Ачаалж байна...</p>
+        <p className="text-muted-foreground">{t("loading")}</p>
       </div>
     );
   }
@@ -355,13 +354,13 @@ const AdminDashboard: React.FC = () => {
         <div className="mb-10 flex items-center justify-between animate-fade-in">
           <div>
             <div className="inline-flex items-center gap-2 bg-success/10 text-success text-xs font-semibold px-3 py-1 rounded-full mb-3">
-              <Shield className="h-3 w-3" /> АДМИН
+              <Shield className="h-3 w-3" /> {t("admin")}
             </div>
-            <h1 className="font-heading text-3xl md:text-4xl font-bold">Хянах самбар</h1>
-            <p className="text-muted-foreground mt-1">Платформыг удирдах</p>
+            <h1 className="font-heading text-3xl md:text-4xl font-bold">{t("adminDashboard")}</h1>
+            <p className="text-muted-foreground mt-1">{t("managePlatform")}</p>
           </div>
           <Button variant="outline" size="sm" onClick={fetchData} disabled={loading}>
-            <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} /> Шинэчлэх
+            <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} /> {t("refresh")}
           </Button>
         </div>
 
@@ -410,10 +409,10 @@ const AdminDashboard: React.FC = () => {
           {activeTab === "users" && (
             <div>
               <h2 className="font-heading font-semibold text-xl mb-6 flex items-center gap-2">
-                <Users className="h-5 w-5 text-primary" /> Бүх хэрэглэгчид ({allUsers.length})
+                <Users className="h-5 w-5 text-primary" /> {t("allUsers")} ({allUsers.length})
               </h2>
               {allUsers.length === 0 ? (
-                <p className="text-center text-muted-foreground py-12">Хэрэглэгч олдсонгүй</p>
+                <p className="text-center text-muted-foreground py-12">{t("noUsersFound")}</p>
               ) : (
                 <div className="space-y-2">
                   {allUsers.map((u) => (
@@ -424,7 +423,7 @@ const AdminDashboard: React.FC = () => {
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <p className="font-medium">{u.name || "Нэргүй"}</p>
+                            <p className="font-medium">{u.name || t("unnamed")}</p>
                             {roleBadge(u.role)}
                           </div>
                           <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
@@ -442,12 +441,12 @@ const AdminDashboard: React.FC = () => {
                             disabled={actionLoading === u.id}
                             onClick={() => handleMakeAdmin(u.id)}
                           >
-                            {actionLoading === u.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <><UserPlus className="mr-1 h-3 w-3" />Admin болгох</>}
+                            {actionLoading === u.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <><UserPlus className="mr-1 h-3 w-3" />{t("makeAdmin")}</>}
                           </Button>
                         )}
                         {u.role === "driver" && (
                           <Button size="sm" variant="outline" className="text-xs" onClick={() => handleUpdateUserRole(u.id, "passenger")} disabled={actionLoading === u.id}>
-                            Passenger болгох
+                            {t("makePassenger")}
                           </Button>
                         )}
                         <Button
@@ -470,10 +469,10 @@ const AdminDashboard: React.FC = () => {
           {activeTab === "drivers" && (
             <div>
               <h2 className="font-heading font-semibold text-xl mb-6 flex items-center gap-2">
-                <Car className="h-5 w-5 text-primary" /> Бүх жолоочид ({allDrivers.length})
+                <Car className="h-5 w-5 text-primary" /> {t("allDrivers")} ({allDrivers.length})
               </h2>
               {allDrivers.length === 0 ? (
-                <p className="text-center text-muted-foreground py-12">Жолооч бүртгэлгүй</p>
+                <p className="text-center text-muted-foreground py-12">{t("noDriversFound")}</p>
               ) : (
                 <div className="space-y-3">
                   {allDrivers.map((d) => (
@@ -500,22 +499,22 @@ const AdminDashboard: React.FC = () => {
                             variant="ghost"
                             onClick={() => setExpandedDriver(expandedDriver === d.id ? null : d.id)}
                           >
-                            <Eye className="mr-1 h-3 w-3" /> Дэлгэрэнгүй
+                            <Eye className="mr-1 h-3 w-3" /> {t("details")}
                             {expandedDriver === d.id ? <ChevronUp className="ml-1 h-3 w-3" /> : <ChevronDown className="ml-1 h-3 w-3" />}
                           </Button>
                           {d.verificationStatus === "pending" && (
                             <>
                               <Button size="sm" disabled={actionLoading === d.id} onClick={() => handleDriverAction(d.id, "approved")}>
-                                {actionLoading === d.id ? <Loader2 className="h-3 w-3 animate-spin" /> : "Зөвшөөрөх"}
+                                {actionLoading === d.id ? <Loader2 className="h-3 w-3 animate-spin" /> : t("approve")}
                               </Button>
                               <Button size="sm" variant="outline" disabled={actionLoading === d.id} onClick={() => handleDriverAction(d.id, "rejected")}>
-                                Татгалзах
+                                {t("reject")}
                               </Button>
                             </>
                           )}
                           {d.verificationStatus === "rejected" && (
                             <Button size="sm" variant="outline" disabled={actionLoading === d.id} onClick={() => handleDriverAction(d.id, "approved")}>
-                              Дахин зөвшөөрөх
+                              {t("reApprove")}
                             </Button>
                           )}
                           <Button
@@ -530,53 +529,50 @@ const AdminDashboard: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Expanded driver details with photos */}
                       {expandedDriver === d.id && (
                         <div className="px-4 pb-4 pt-0 border-t border-border/50 mt-0">
-                          {/* Document info */}
                           <div className="grid sm:grid-cols-2 gap-3 pt-3 mb-4">
                             <div className="flex items-center gap-2 text-sm">
                               <Users className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-muted-foreground">Овог нэр:</span>
+                              <span className="text-muted-foreground">{t("fullName")}:</span>
                               <span className="font-medium">{d.userLastName ? `${d.userLastName} ${d.userName}` : d.userName || "—"}</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm">
                               <Phone className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-muted-foreground">Утас:</span>
+                              <span className="text-muted-foreground">{t("phoneLabel")}:</span>
                               <span className="font-medium">{d.userPhone || "—"}</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm">
                               <FileText className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-muted-foreground">Тээврийн хэрэгсэл:</span>
+                              <span className="text-muted-foreground">{t("vehicle")}:</span>
                               <span className="font-medium">{d.vehicleType || "—"}</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm">
                               <Car className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-muted-foreground">Улсын дугаар:</span>
+                              <span className="text-muted-foreground">{t("plateNo")}:</span>
                               <span className="font-medium">{d.vehiclePlate || d.userPlateNo || "—"}</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm">
                               <FileText className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-muted-foreground">Регистрийн дугаар:</span>
+                              <span className="text-muted-foreground">{t("registerNoLabel")}:</span>
                               <span className="font-medium">{d.userRegisterNo || "—"}</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm">
                               <FileText className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-muted-foreground">Жолоочийн үнэмлэх:</span>
+                              <span className="text-muted-foreground">{t("driverLicense")}:</span>
                               <span className="font-medium">{d.licenseNumber || "—"}</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm">
                               <Mail className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-muted-foreground">Имэйл:</span>
+                              <span className="text-muted-foreground">{t("email")}:</span>
                               <span className="font-medium">{d.userEmail || d.email || "—"}</span>
                             </div>
                           </div>
 
-                          {/* Photos grid */}
                           {d.photos && Object.keys(d.photos).length > 0 ? (
                             <div>
                               <h4 className="text-sm font-medium mb-2 flex items-center gap-1.5">
-                                <Image className="h-4 w-4 text-primary" /> Байршуулсан зургууд
+                                <Image className="h-4 w-4 text-primary" /> {t("uploadedPhotos")}
                               </h4>
                               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                                 {Object.entries(d.photos).map(([key, url]) => (
@@ -594,7 +590,7 @@ const AdminDashboard: React.FC = () => {
                               </div>
                             </div>
                           ) : (
-                            <p className="text-xs text-muted-foreground italic">Зураг байршуулаагүй байна</p>
+                            <p className="text-xs text-muted-foreground italic">{t("noPhotosUploaded")}</p>
                           )}
                         </div>
                       )}
@@ -609,14 +605,14 @@ const AdminDashboard: React.FC = () => {
           {activeTab === "pendingtrips" && (
             <div>
               <h2 className="font-heading font-semibold text-xl mb-6 flex items-center gap-2">
-                <Clock className="h-5 w-5 text-warning" /> Хүлээгдэж буй аялалууд ({pendingTrips.length})
+                <Clock className="h-5 w-5 text-warning" /> {t("pendingTripsTitle")} ({pendingTrips.length})
               </h2>
               {pendingTrips.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
                     <CheckCircle className="h-8 w-8 text-success" />
                   </div>
-                  <p className="text-muted-foreground font-medium">Хүлээгдэж буй аялал байхгүй</p>
+                  <p className="text-muted-foreground font-medium">{t("noPendingTrips")}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -637,10 +633,10 @@ const AdminDashboard: React.FC = () => {
                       </div>
                       <div className="flex gap-2">
                         <Button size="sm" disabled={actionLoading === trip.id} onClick={() => handleTripAction(trip.id, "approved")}>
-                          {actionLoading === trip.id ? <Loader2 className="h-3 w-3 animate-spin" /> : "Зөвшөөрөх"}
+                          {actionLoading === trip.id ? <Loader2 className="h-3 w-3 animate-spin" /> : t("approve")}
                         </Button>
                         <Button size="sm" variant="outline" disabled={actionLoading === trip.id} onClick={() => handleTripAction(trip.id, "rejected")}>
-                          Татгалзах
+                          {t("reject")}
                         </Button>
                       </div>
                     </div>
@@ -654,10 +650,10 @@ const AdminDashboard: React.FC = () => {
           {activeTab === "alltrips" && (
             <div>
               <h2 className="font-heading font-semibold text-xl mb-6 flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-accent" /> Бүх аялалууд ({allTrips.length})
+                <MapPin className="h-5 w-5 text-accent" /> {t("allTripsTitle")} ({allTrips.length})
               </h2>
               {allTrips.length === 0 ? (
-                <p className="text-center text-muted-foreground py-12">Аялал олдсонгүй</p>
+                <p className="text-center text-muted-foreground py-12">{t("noTripsFoundAdmin")}</p>
               ) : (
                 <div className="space-y-2">
                   {allTrips.map((trip) => (
@@ -674,7 +670,7 @@ const AdminDashboard: React.FC = () => {
                           <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
                             <span>{trip.driverName}</span>
                             <span>{trip.date} {trip.time}</span>
-                            <span>{trip.seats} суудал</span>
+                            <span>{trip.seats} {t("seats")}</span>
                             <span className="font-medium text-primary">{trip.price?.toLocaleString()}₮</span>
                           </div>
                         </div>
@@ -688,7 +684,7 @@ const AdminDashboard: React.FC = () => {
                             disabled={actionLoading === trip.id}
                             onClick={() => handleTripAction(trip.id, "cancelled")}
                           >
-                            {actionLoading === trip.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <><Ban className="mr-1 h-3 w-3" />Цуцлах</>}
+                            {actionLoading === trip.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <><Ban className="mr-1 h-3 w-3" />{t("cancelAction2")}</>}
                           </Button>
                         )}
                       </div>
@@ -703,14 +699,14 @@ const AdminDashboard: React.FC = () => {
           {activeTab === "complaints" && (
             <div>
               <h2 className="font-heading font-semibold text-xl mb-6 flex items-center gap-2">
-                <MessageSquare className="h-5 w-5 text-warning" /> Гомдол & Санал ({complaints.length})
+                <MessageSquare className="h-5 w-5 text-warning" /> {t("complaintsTitle")} ({complaints.length})
               </h2>
               {complaints.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
                     <CheckCircle className="h-8 w-8 text-success" />
                   </div>
-                  <p className="text-muted-foreground font-medium">Гомдол байхгүй!</p>
+                  <p className="text-muted-foreground font-medium">{t("noComplaints")}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -721,7 +717,7 @@ const AdminDashboard: React.FC = () => {
                           <AlertTriangle className="h-4 w-4 text-warning" />
                         </div>
                         <div>
-                          <p className="font-medium text-sm">{c.userName || "Нэргүй"}</p>
+                          <p className="font-medium text-sm">{c.userName || t("unnamed")}</p>
                           <p className="text-sm text-muted-foreground mt-1">{c.message}</p>
                         </div>
                       </div>
@@ -739,12 +735,12 @@ const AdminDashboard: React.FC = () => {
           {activeTab === "settings" && (
             <div>
               <h2 className="font-heading font-semibold text-xl mb-6 flex items-center gap-2">
-                <Settings className="h-5 w-5 text-primary" /> Платформын тохиргоо
+                <Settings className="h-5 w-5 text-primary" /> {t("platformSettings")}
               </h2>
               <div className="max-w-md space-y-6">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">1 км-ийн үнэ (₮)</label>
-                  <p className="text-xs text-muted-foreground">Аялалын үнийг автоматаар тооцоолоход ашиглана</p>
+                  <label className="text-sm font-medium">{t("pricePerKm")}</label>
+                  <p className="text-xs text-muted-foreground">{t("pricePerKmDesc")}</p>
                   <div className="flex items-center gap-3">
                     <Input
                       type="number"
@@ -757,13 +753,13 @@ const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
                 <div className="p-4 rounded-xl bg-muted/30">
-                  <p className="text-sm text-muted-foreground mb-1">Жишээ тооцоолол:</p>
+                  <p className="text-sm text-muted-foreground mb-1">{t("exampleCalc")}</p>
                   <p className="font-medium">100 км × {pricePerKm}₮ = <span className="text-primary font-bold">{(100 * pricePerKm).toLocaleString()}₮</span></p>
                   <p className="font-medium mt-1">500 км × {pricePerKm}₮ = <span className="text-primary font-bold">{(500 * pricePerKm).toLocaleString()}₮</span></p>
                 </div>
                 <Button onClick={handleSaveSettings} disabled={savingSettings}>
                   {savingSettings ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                  Хадгалах
+                  {t("saveBtn")}
                 </Button>
               </div>
             </div>
@@ -775,20 +771,20 @@ const AdminDashboard: React.FC = () => {
       <Dialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{deleteConfirm?.type === "driver" ? "Жолоочийн бүртгэл устгах" : "Хэрэглэгч устгах"}</DialogTitle>
+            <DialogTitle>{deleteConfirm?.type === "driver" ? t("deleteDriverRecord") : t("deleteUser")}</DialogTitle>
             <DialogDescription>
-              "{deleteConfirm?.name}" {deleteConfirm?.type === "driver" ? "жолоочийн бүртгэлийг" : "хэрэглэгчийг"} устгахдаа итгэлтэй байна уу? Энэ үйлдлийг буцаах боломжгүй.
+              "{deleteConfirm?.name}" {deleteConfirm?.type === "driver" ? t("deleteDriverSuffix") : t("deleteUserSuffix")} {t("deleteConfirmMsg")} {t("cannotUndo")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Болих</Button>
+            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>{t("stopAction")}</Button>
             <Button
               variant="destructive"
               disabled={actionLoading === deleteConfirm?.id}
               onClick={() => deleteConfirm && (deleteConfirm.type === "driver" ? handleDeleteDriver(deleteConfirm.id) : handleDeleteUser(deleteConfirm.id))}
             >
               {actionLoading === deleteConfirm?.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
-              Устгах
+              {t("delete")}
             </Button>
           </DialogFooter>
         </DialogContent>
