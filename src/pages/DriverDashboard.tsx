@@ -138,6 +138,9 @@ const DriverDashboard: React.FC = () => {
   }, [user]);
 
   const isVerified = verificationStatus === "approved";
+  const isPending = verificationStatus === "pending" && Object.keys(photoUrls).length > 0;
+  const isRejected = verificationStatus === "rejected";
+  const needsSubmission = !isVerified && !isPending;
   const vehicleType = selectedBrand && selectedModel ? `${selectedBrand} ${selectedModel}` : "";
 
   const handlePhotoSelect = (key: string, file: File | null) => {
