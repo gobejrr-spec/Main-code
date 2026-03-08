@@ -734,6 +734,40 @@ const AdminDashboard: React.FC = () => {
               )}
             </div>
           )}
+
+          {/* SETTINGS TAB */}
+          {activeTab === "settings" && (
+            <div>
+              <h2 className="font-heading font-semibold text-xl mb-6 flex items-center gap-2">
+                <Settings className="h-5 w-5 text-primary" /> Платформын тохиргоо
+              </h2>
+              <div className="max-w-md space-y-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">1 км-ийн үнэ (₮)</label>
+                  <p className="text-xs text-muted-foreground">Аялалын үнийг автоматаар тооцоолоход ашиглана</p>
+                  <div className="flex items-center gap-3">
+                    <Input
+                      type="number"
+                      value={pricePerKm}
+                      onChange={(e) => setPricePerKm(Number(e.target.value))}
+                      min={1}
+                      className="max-w-[200px]"
+                    />
+                    <span className="text-sm text-muted-foreground">₮/км</span>
+                  </div>
+                </div>
+                <div className="p-4 rounded-xl bg-muted/30">
+                  <p className="text-sm text-muted-foreground mb-1">Жишээ тооцоолол:</p>
+                  <p className="font-medium">100 км × {pricePerKm}₮ = <span className="text-primary font-bold">{(100 * pricePerKm).toLocaleString()}₮</span></p>
+                  <p className="font-medium mt-1">500 км × {pricePerKm}₮ = <span className="text-primary font-bold">{(500 * pricePerKm).toLocaleString()}₮</span></p>
+                </div>
+                <Button onClick={handleSaveSettings} disabled={savingSettings}>
+                  {savingSettings ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                  Хадгалах
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
