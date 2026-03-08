@@ -154,7 +154,9 @@ const AdminDashboard: React.FC = () => {
     }
   }, []);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => { 
+    if (user) fetchData(); 
+  }, [user, fetchData]);
 
   const handleMakeAdmin = async (userId: string) => {
     setActionLoading(userId);
