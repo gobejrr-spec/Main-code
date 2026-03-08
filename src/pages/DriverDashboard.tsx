@@ -165,6 +165,29 @@ const DriverDashboard: React.FC = () => {
     return () => unsubscribe();
   }, [user]);
 
+  // Fetch platform price per km
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const settingsDoc = await getDoc(doc(db, "settings", "platform"));
+        if (settingsDoc.exists() && settingsDoc.data().pricePerKm) {
+          setPricePerKm(settingsDoc.data().pricePerKm);
+        }
+      } catch (e) { console.warn("Settings fetch:", e); }
+    };
+    fetchSettings();
+  }, []);
+
+  // Auto-calculate price when from/to changes
+  useEffect(() => {
+    if (tripFrom && tripTo) {
+      const dist = getDistanceKm(tripFrom, tripTo);
+      if (dist) {
+        setTripPrice(String(dist * pricePerKm));
+      }
+    }
+  }, [tripFrom, tripTo, pricePerKm]);
+
   const isVerified = verificationStatus === "approved";
   const isPending = verificationStatus === "pending" && hasSubmitted;
   const isRejected = verificationStatus === "rejected";
