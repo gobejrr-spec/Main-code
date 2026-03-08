@@ -63,16 +63,49 @@ const Explore: React.FC = () => {
                 <Star className="h-5 w-5 text-warning" />
                 Үзэх газрууд
               </h2>
-              <div className="grid sm:grid-cols-2 gap-3">
-                {selected.highlights.map((h, i) => (
-                  <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
-                      {i + 1}
+
+              {/* Attraction cards with photos */}
+              {selected.attractions && selected.attractions.length > 0 ? (
+                <div className="grid gap-4">
+                  {selected.attractions.map((attraction, i) => (
+                    <div key={i} className="rounded-xl overflow-hidden bg-muted/30 hover:bg-muted/50 transition-colors">
+                      <div className="sm:flex">
+                        <div className="sm:w-48 h-36 sm:h-auto flex-shrink-0">
+                          <img
+                            src={attraction.photoUrl}
+                            alt={attraction.name}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/480px-No_image_available.svg.png";
+                            }}
+                          />
+                        </div>
+                        <div className="p-4 flex flex-col justify-center">
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
+                              {i + 1}
+                            </div>
+                            <h3 className="font-heading font-semibold text-sm">{attraction.name}</h3>
+                          </div>
+                          <p className="text-sm text-muted-foreground leading-relaxed">{attraction.description}</p>
+                        </div>
+                      </div>
                     </div>
-                    <span className="text-sm font-medium">{h}</span>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {selected.highlights.map((h, i) => (
+                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
+                        {i + 1}
+                      </div>
+                      <span className="text-sm font-medium">{h}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               <div className="mt-8 pt-6 border-t border-border">
                 <Button asChild className="w-full glow-primary">
