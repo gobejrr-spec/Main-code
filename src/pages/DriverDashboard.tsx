@@ -10,6 +10,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { toast } from "sonner";
 import LocationSelect from "@/components/LocationSelect";
+import { getDistanceKm } from "@/lib/distance";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel
 } from "@/components/ui/select";
@@ -89,6 +90,7 @@ const DriverDashboard: React.FC = () => {
   const [tripSeats, setTripSeats] = useState("");
   const [tripPrice, setTripPrice] = useState("");
   const [carType, setCarType] = useState("");
+  const [pricePerKm, setPricePerKm] = useState<number>(150);
 
   // Driver document fields
   const [selectedBrand, setSelectedBrand] = useState("");
@@ -162,6 +164,29 @@ const DriverDashboard: React.FC = () => {
     });
     return () => unsubscribe();
   }, [user]);
+
+  // Fetch platform price per km
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const settingsDoc = await getDoc(doc(db, "settings", "platform"));
+        if (settingsDoc.exists() && settingsDoc.data().pricePerKm) {
+          setPricePerKm(settingsDoc.data().pricePerKm);
+        }
+      } catch (e) { console.warn("Settings fetch:", e); }
+    };
+    fetchSettings();
+  }, []);
+
+  // Auto-calculate price when from/to changes
+  useEffect(() => {
+    if (tripFrom && tripTo) {
+      const dist = getDistanceKm(tripFrom, tripTo);
+      if (dist) {
+        setTripPrice(String(dist * pricePerKm));
+      }
+    }
+  }, [tripFrom, tripTo, pricePerKm]);
 
   const isVerified = verificationStatus === "approved";
   const isPending = verificationStatus === "pending" && hasSubmitted;
@@ -490,8 +515,13 @@ const DriverDashboard: React.FC = () => {
                 <Input type="number" min="1" max="10" placeholder="4" value={tripSeats} onChange={(e) => setTripSeats(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label>Үнэ (₮)</Label>
+                <Label>Үнэ (₮) — автомат тооцоолол</Label>
                 <Input type="number" placeholder="25000" value={tripPrice} onChange={(e) => setTripPrice(e.target.value)} />
+                {tripFrom && tripTo && getDistanceKm(tripFrom, tripTo) && (
+                  <p className="text-xs text-muted-foreground">
+                    {getDistanceKm(tripFrom, tripTo)} км × {pricePerKm}₮/км
+                  </p>
+                )}
               </div>
             </div>
             <div className="flex gap-3 mt-5">
