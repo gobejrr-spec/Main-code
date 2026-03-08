@@ -34,35 +34,35 @@ const Register: React.FC = () => {
     e.preventDefault();
 
     if (!form.name || !form.email || !form.phone || !form.password) {
-      toast.error("Бүх талбарыг бөглөнө үү");
+      toast.error(t("fillAllFields"));
       return;
     }
     if (form.role === "driver" && !form.lastName) {
-      toast.error("Овог бөглөнө үү");
+      toast.error(t("fillLastName"));
       return;
     }
     if (form.password !== form.confirmPassword) {
-      toast.error("Нууц үг таарахгүй байна");
+      toast.error(t("passwordMismatch"));
       return;
     }
     if (form.password.length < 8) {
-      toast.error("Нууц үг хамгийн багадаа 8 тэмдэгт байна");
+      toast.error(t("passwordMinLength"));
       return;
     }
     if (form.phone.replace(/\D/g, "").length < 8) {
-      toast.error("Утасны дугаар зөв оруулна уу");
+      toast.error(t("invalidPhone"));
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      toast.error("Зөв имэйл хаяг оруулна уу");
+      toast.error(t("invalidEmail"));
       return;
     }
     if (form.role === "driver" && !/^[а-яА-ЯөӨүҮёЁ]{2}\d{8}$/.test(form.registerNo)) {
-      toast.error("Регистрийн дугаар буруу байна (2 кирилл үсэг + 8 тоо)");
+      toast.error(t("invalidRegisterNo"));
       return;
     }
     if (form.role === "driver" && !/^[а-яА-ЯөӨүҮёЁ\s-]+$/.test(form.name)) {
-      toast.error("Жолоочийн нэрийг зөвхөн кирилл үсгээр бичнэ үү");
+      toast.error(t("driverNameCyrillicOnly"));
       return;
     }
 
@@ -91,14 +91,14 @@ const Register: React.FC = () => {
         });
       }
 
-      toast.success("Бүртгэл амжилттай!");
+      toast.success(t("registerSuccess"));
       navigate(form.role === "driver" ? "/driver" : "/passenger");
     } catch (err: any) {
       console.error("Register error:", err);
       if (err.code === "auth/email-already-in-use") {
-        toast.error("Энэ имэйл аль хэдийн бүртгэлтэй байна");
+        toast.error(t("emailInUse"));
       } else {
-        toast.error(err.message || "Бүртгэл амжилтгүй");
+        toast.error(err.message || t("registerFailed"));
       }
     } finally {
       setLoading(false);
@@ -115,17 +115,17 @@ const Register: React.FC = () => {
         <div className="text-center mb-8">
           <img src={ruralLogo} alt="Rural" className="w-16 h-16 mx-auto mb-4 object-contain" />
           <h1 className="font-heading text-3xl font-bold">{t("registerTitle")}</h1>
-          <p className="text-sm text-muted-foreground mt-2">Rural платформд нэгдээрэй</p>
+          <p className="text-sm text-muted-foreground mt-2">{t("registerSubtitle")}</p>
         </div>
 
         <form onSubmit={handleRegister} className="glass-card-elevated rounded-2xl p-8 space-y-5">
           {/* Role selector */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Та юу хийх вэ?</Label>
+            <Label className="text-sm font-medium">{t("whatDoYouDo")}</Label>
             <div className="grid grid-cols-2 gap-3">
               {([
-                { role: "passenger" as const, icon: User, label: "Зорчигч", desc: "Аялал хайж захиалах" },
-                { role: "driver" as const, icon: Car, label: "Жолооч", desc: "Аялал зарлаж орлого олох" },
+                { role: "passenger" as const, icon: User, label: t("passenger"), desc: t("passengerDesc") },
+                { role: "driver" as const, icon: Car, label: t("driver"), desc: t("driverDesc") },
               ]).map(({ role, icon: Icon, label, desc }) => (
                 <button
                   key={role}
@@ -148,7 +148,7 @@ const Register: React.FC = () => {
           {form.role === "driver" ? (
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Овог <span className="text-xs text-muted-foreground">(кирилл)</span></Label>
+                <Label className="text-sm font-medium">{t("lastName")} <span className="text-xs text-muted-foreground">({t("cyrillic")})</span></Label>
                 <Input
                   value={form.lastName}
                   onChange={(e) => {
@@ -161,7 +161,7 @@ const Register: React.FC = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Нэр <span className="text-xs text-muted-foreground">(кирилл)</span></Label>
+                <Label className="text-sm font-medium">{t("firstName")} <span className="text-xs text-muted-foreground">({t("cyrillic")})</span></Label>
                 <Input
                   value={form.name}
                   onChange={(e) => {
@@ -177,13 +177,13 @@ const Register: React.FC = () => {
           ) : (
             <div className="space-y-2">
               <Label className="text-sm font-medium">{t("name")}</Label>
-              <Input value={form.name} onChange={(e) => update("name", e.target.value)} required className="h-11" placeholder="Name / Нэр" />
+              <Input value={form.name} onChange={(e) => update("name", e.target.value)} required className="h-11" placeholder={t("nameOrNer")} />
             </div>
           )}
 
           {form.role === "driver" && (
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Регистрийн дугаар</Label>
+              <Label className="text-sm font-medium">{t("registerNo")}</Label>
               <Input
                 value={form.registerNo}
                 onChange={(e) => {
@@ -195,7 +195,7 @@ const Register: React.FC = () => {
                 placeholder="УБ12345678"
                 maxLength={10}
               />
-              <p className="text-xs text-muted-foreground">2 кирилл үсэг + 8 тоо</p>
+              <p className="text-xs text-muted-foreground">{t("registerNoHint")}</p>
             </div>
           )}
 
@@ -241,7 +241,7 @@ const Register: React.FC = () => {
 
           <Button type="submit" className="w-full h-12 text-base glow-primary" disabled={loading}>
             {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ArrowRight className="mr-2 h-4 w-4" />}
-            Бүртгүүлэх
+            {t("register")}
           </Button>
           <p className="text-center text-sm text-muted-foreground pt-2">
             {t("hasAccount")}{" "}

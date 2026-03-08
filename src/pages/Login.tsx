@@ -23,10 +23,10 @@ const Login: React.FC = () => {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      toast.success("Амжилттай нэвтэрлээ!");
+      toast.success(t("loginSuccess"));
       navigate("/");
     } catch (err: any) {
-      toast.error("Имэйл эсвэл нууц үг буруу байна");
+      toast.error(t("loginError"));
     } finally {
       setLoading(false);
     }
@@ -42,7 +42,7 @@ const Login: React.FC = () => {
         <div className="text-center mb-8">
           <img src={ruralLogo} alt="Rural" className="w-16 h-16 mx-auto mb-4 object-contain" />
           <h1 className="font-heading text-3xl font-bold">{t("loginTitle")}</h1>
-          <p className="text-sm text-muted-foreground mt-2">Rural хаягтаа нэвтэрнэ үү</p>
+          <p className="text-sm text-muted-foreground mt-2">{t("loginSubtitle")}</p>
         </div>
         <form onSubmit={handleLogin} className="glass-card-elevated rounded-2xl p-8 space-y-5">
           <div className="space-y-2">

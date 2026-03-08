@@ -37,7 +37,6 @@ const PassengerDashboard: React.FC = () => {
         const bookingsList: Booking[] = [];
         for (const bDoc of snapshot.docs) {
           const bData = bDoc.data();
-          // Fetch trip details
           try {
             const { getDoc, doc } = await import("firebase/firestore");
             const tripDoc = await getDoc(doc(db, "trips", bData.tripId));
@@ -77,10 +76,10 @@ const PassengerDashboard: React.FC = () => {
         message: complaint,
         createdAt: serverTimestamp(),
       });
-      toast.success("Санал гомдол илгээгдлээ!");
+      toast.success(t("complaintSuccess"));
       setComplaint("");
     } catch (err) {
-      toast.error("Илгээх амжилтгүй");
+      toast.error(t("complaintFailed"));
     } finally {
       setSending(false);
     }
@@ -91,15 +90,15 @@ const PassengerDashboard: React.FC = () => {
       <div className="container mx-auto px-4 max-w-4xl">
         <div className="mb-8 animate-fade-in">
           <h1 className="font-heading text-3xl font-bold">
-            {profile?.name ? `Сайн байна уу, ${profile.name}` : t("dashboard")}
+            {profile?.name ? `${t("hello")}, ${profile.name}` : t("dashboard")}
           </h1>
-          <p className="text-muted-foreground mt-1">Зорчигчийн самбар</p>
+          <p className="text-muted-foreground mt-1">{t("passengerDashboard")}</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
           {/* Bookings */}
           <div className="md:col-span-2">
-            <h2 className="font-heading font-semibold text-lg mb-4">Миний захиалгууд</h2>
+            <h2 className="font-heading font-semibold text-lg mb-4">{t("myBookingsTitle")}</h2>
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -107,8 +106,8 @@ const PassengerDashboard: React.FC = () => {
             ) : bookings.length === 0 ? (
               <div className="text-center py-12 glass-card-elevated rounded-2xl">
                 <MapPin className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
-                <p className="text-muted-foreground font-medium">Захиалга байхгүй</p>
-                <p className="text-xs text-muted-foreground/70 mt-1">Аялал хайж эхлээрэй</p>
+                <p className="text-muted-foreground font-medium">{t("noBookings")}</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">{t("startSearching")}</p>
               </div>
             ) : (
               <div className="space-y-3 animate-stagger">
@@ -133,7 +132,7 @@ const PassengerDashboard: React.FC = () => {
                       <span className={`text-xs px-2 py-0.5 rounded-full ${
                         b.status === "confirmed" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"
                       }`}>
-                        {b.status === "confirmed" ? "Баталгаажсан" : b.status}
+                        {b.status === "confirmed" ? t("confirmed") : b.status}
                       </span>
                     </div>
                   </div>
@@ -146,9 +145,9 @@ const PassengerDashboard: React.FC = () => {
           <div className="glass-card-elevated rounded-2xl p-6">
             <h3 className="font-heading font-semibold mb-3 flex items-center gap-2">
               <Search className="h-5 w-5 text-primary" />
-              Аялал хайх
+              {t("searchTripsTitle")}
             </h3>
-            <p className="text-sm text-muted-foreground mb-4">Монгол даяарх боломжтой аялалуудыг хайна</p>
+            <p className="text-sm text-muted-foreground mb-4">{t("searchTripsDesc")}</p>
             <Button asChild className="w-full glow-primary">
               <Link to="/trips">{t("searchNow")}</Link>
             </Button>
@@ -158,12 +157,12 @@ const PassengerDashboard: React.FC = () => {
           <div className="glass-card-elevated rounded-2xl p-6">
             <h3 className="font-heading font-semibold mb-3 flex items-center gap-2">
               <MessageSquare className="h-5 w-5 text-warning" />
-              Санал гомдол
+              {t("complaintTitle")}
             </h3>
             <textarea
               value={complaint}
               onChange={(e) => setComplaint(e.target.value)}
-              placeholder="Саналаа бичнэ үү..."
+              placeholder={t("complaintPlaceholder")}
               className="w-full h-20 rounded-xl border border-input bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring mb-3"
             />
             <Button
@@ -173,7 +172,7 @@ const PassengerDashboard: React.FC = () => {
               disabled={sending || !complaint.trim()}
             >
               {sending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-              Илгээх
+              {t("send")}
             </Button>
           </div>
         </div>

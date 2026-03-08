@@ -17,20 +17,20 @@ const Footer: React.FC = () => {
               Rural
             </Link>
             <p className="text-sm text-white/50 max-w-sm leading-relaxed">
-              Монгол даяар найдвартай жолоочтой холбогдож, аюулгүй, хямд тээврийн үйлчилгээ.
+              {t("footerDesc")}
             </p>
           </div>
           <div>
-            <h4 className="font-heading font-semibold text-white mb-4 text-sm uppercase tracking-wide">Холбоосууд</h4>
+            <h4 className="font-heading font-semibold text-white mb-4 text-sm uppercase tracking-wide">{t("links")}</h4>
             <div className="space-y-3">
               <Link to="/" className="block text-sm text-white/50 hover:text-white transition-colors">{t("home")}</Link>
               <Link to="/trips" className="block text-sm text-white/50 hover:text-white transition-colors">{t("searchTrips")}</Link>
-              <Link to="/explore" className="block text-sm text-white/50 hover:text-white transition-colors">Аймгууд</Link>
+              <Link to="/explore" className="block text-sm text-white/50 hover:text-white transition-colors">{t("aimags")}</Link>
               <Link to="/register" className="block text-sm text-white/50 hover:text-white transition-colors">{t("register")}</Link>
             </div>
           </div>
           <div>
-            <h4 className="font-heading font-semibold text-white mb-4 text-sm uppercase tracking-wide">Холбоо барих</h4>
+            <h4 className="font-heading font-semibold text-white mb-4 text-sm uppercase tracking-wide">{t("contactUs")}</h4>
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-sm text-white/50">
                 <MapPin className="h-4 w-4" /> Улаанбаатар, Монгол

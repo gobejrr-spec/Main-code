@@ -37,14 +37,6 @@ interface Booking {
   status: string;
 }
 
-const statusLabel: Record<string, { text: string; cls: string }> = {
-  approved: { text: "Зөвшөөрсөн", cls: "bg-success/10 text-success" },
-  pending: { text: "Хүлээгдэж буй", cls: "bg-warning/10 text-warning" },
-  rejected: { text: "Татгалзсан", cls: "bg-destructive/10 text-destructive" },
-  cancelled: { text: "Цуцлагдсан", cls: "bg-muted text-muted-foreground" },
-  completed: { text: "Дууссан", cls: "bg-primary/10 text-primary" },
-};
-
 const Trips: React.FC = () => {
   const { t } = useLanguage();
   const { user, profile, loading: authLoading } = useAuth();
@@ -76,7 +68,6 @@ const Trips: React.FC = () => {
         const tripsList = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Trip));
         setTrips(tripsList);
 
-        // Fetch bookings for driver's trips
         if (isDriver && tripsList.length > 0) {
           const bookingsMap: Record<string, Booking[]> = {};
           for (const trip of tripsList) {
@@ -105,10 +96,10 @@ const Trips: React.FC = () => {
     try {
       await updateDoc(doc(db, "trips", tripId), { status: "cancelled" });
       setTrips(prev => prev.map(t => t.id === tripId ? { ...t, status: "cancelled" } : t));
-      toast.success("Аялал амжилттай цуцлагдлаа");
+      toast.success(t("tripCancelledSuccess"));
     } catch (err) {
       console.error(err);
-      toast.error("Цуцлах үед алдаа гарлаа");
+      toast.error(t("cancelError"));
     } finally {
       setCancelling(false);
       setCancelConfirm(null);
@@ -135,6 +126,14 @@ const Trips: React.FC = () => {
     ? [...filtered].sort((a, b) => b.seats - a.seats)
     : filtered;
 
+  const statusLabel: Record<string, { text: string; cls: string }> = {
+    approved: { text: t("approved"), cls: "bg-success/10 text-success" },
+    pending: { text: t("pending"), cls: "bg-warning/10 text-warning" },
+    rejected: { text: t("rejected"), cls: "bg-destructive/10 text-destructive" },
+    cancelled: { text: t("cancelled"), cls: "bg-muted text-muted-foreground" },
+    completed: { text: t("completed"), cls: "bg-primary/10 text-primary" },
+  };
+
   // ==================== DRIVER VIEW ====================
   if (isDriver) {
     return (
@@ -142,9 +141,9 @@ const Trips: React.FC = () => {
         <div className="relative py-12 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-primary/8 via-background to-accent/8" />
           <div className="container mx-auto px-4 relative z-10">
-            <h1 className="font-heading text-4xl font-bold text-center mb-2 animate-fade-in">Миний аялалууд</h1>
+            <h1 className="font-heading text-4xl font-bold text-center mb-2 animate-fade-in">{t("myTripsTitle")}</h1>
             <p className="text-center text-muted-foreground mb-4 animate-fade-in" style={{ animationDelay: "100ms" }}>
-              Таны оруулсан бүх аялалын дэлгэрэнгүй мэдээлэл
+              {t("myTripsSubtitle")}
             </p>
           </div>
         </div>
@@ -160,10 +159,10 @@ const Trips: React.FC = () => {
               <div className="w-20 h-20 rounded-3xl bg-muted flex items-center justify-center mx-auto mb-6">
                 <Car className="h-10 w-10 text-muted-foreground/40" />
               </div>
-              <p className="text-muted-foreground text-xl font-heading font-semibold mb-2">Аялал байхгүй</p>
-              <p className="text-sm text-muted-foreground/70">Та жолоочийн самбараас аялал нийтлэх боломжтой</p>
+              <p className="text-muted-foreground text-xl font-heading font-semibold mb-2">{t("noTrips")}</p>
+              <p className="text-sm text-muted-foreground/70">{t("postTripFromDashboard")}</p>
               <Button className="mt-6" asChild>
-                <Link to="/driver">Аялал нийтлэх</Link>
+                <Link to="/driver">{t("postTrip")}</Link>
               </Button>
             </div>
           ) : (
@@ -177,7 +176,6 @@ const Trips: React.FC = () => {
 
                 return (
                   <div key={trip.id} className="glass-card-elevated rounded-2xl overflow-hidden hover-lift">
-                    {/* Main row */}
                     <div
                       className="p-5 cursor-pointer"
                       onClick={() => setExpandedTrip(isExpanded ? null : trip.id)}
@@ -200,39 +198,36 @@ const Trips: React.FC = () => {
                         <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${st.cls}`}>{st.text}</span>
                       </div>
 
-                      {/* Trip details grid */}
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         <div className="bg-muted/40 rounded-xl p-3 text-center">
-                          <p className="text-xs text-muted-foreground mb-1">Нийт суудал</p>
+                          <p className="text-xs text-muted-foreground mb-1">{t("totalSeats")}</p>
                           <p className="font-heading font-bold text-lg">{trip.seats}</p>
                         </div>
                         <div className="bg-muted/40 rounded-xl p-3 text-center">
-                          <p className="text-xs text-muted-foreground mb-1">Захиалсан</p>
+                          <p className="text-xs text-muted-foreground mb-1">{t("booked")}</p>
                           <p className="font-heading font-bold text-lg text-primary">{bookedSeats}</p>
                         </div>
                         <div className="bg-muted/40 rounded-xl p-3 text-center">
-                          <p className="text-xs text-muted-foreground mb-1">Сул суудал</p>
+                          <p className="text-xs text-muted-foreground mb-1">{t("freeSeats")}</p>
                           <p className={`font-heading font-bold text-lg ${trip.seats - bookedSeats <= 0 ? "text-destructive" : "text-success"}`}>
                             {Math.max(0, trip.seats - bookedSeats)}
                           </p>
                         </div>
                         <div className="bg-muted/40 rounded-xl p-3 text-center">
-                          <p className="text-xs text-muted-foreground mb-1">Үнэ</p>
+                          <p className="text-xs text-muted-foreground mb-1">{t("price")}</p>
                           <p className="font-heading font-bold text-lg text-primary">{trip.price?.toLocaleString()}₮</p>
                         </div>
                       </div>
                     </div>
 
-                    {/* Expanded: bookings list + cancel */}
                     {isExpanded && (
                       <div className="border-t border-border px-5 pb-5 pt-4">
-                        {/* Bookings */}
                         <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
                           <Users className="h-4 w-4 text-primary" />
-                          Захиалсан зорчигчид ({tripBookings.length})
+                          {t("bookedPassengers")} ({tripBookings.length})
                         </h4>
                         {tripBookings.length === 0 ? (
-                          <p className="text-sm text-muted-foreground italic mb-4">Одоогоор захиалга байхгүй</p>
+                          <p className="text-sm text-muted-foreground italic mb-4">{t("noBookingsYet")}</p>
                         ) : (
                           <div className="space-y-2 mb-4">
                             {tripBookings.map((b) => (
@@ -242,20 +237,20 @@ const Trips: React.FC = () => {
                                     <User className="h-4 w-4 text-primary" />
                                   </div>
                                   <div>
-                                    <p className="text-sm font-medium">{b.passengerName || "Зорчигч"}</p>
+                                    <p className="text-sm font-medium">{b.passengerName || t("passenger")}</p>
                                     <p className="text-xs text-muted-foreground flex items-center gap-1">
                                       <Phone className="h-3 w-3" /> {b.passengerPhone || "—"}
                                     </p>
                                   </div>
                                 </div>
                                 <div className="text-right">
-                                  <p className="text-sm font-medium">{b.seats || 1} суудал</p>
+                                  <p className="text-sm font-medium">{b.seats || 1} {t("seats")}</p>
                                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                                     b.status === "confirmed" ? "bg-success/10 text-success" :
                                     b.status === "cancelled" ? "bg-destructive/10 text-destructive" :
                                     "bg-warning/10 text-warning"
                                   }`}>
-                                    {b.status === "confirmed" ? "Баталгаажсан" : b.status === "cancelled" ? "Цуцалсан" : "Хүлээгдэж буй"}
+                                    {b.status === "confirmed" ? t("confirmed") : b.status === "cancelled" ? t("cancelled") : t("pending")}
                                   </span>
                                 </div>
                               </div>
@@ -263,7 +258,6 @@ const Trips: React.FC = () => {
                           </div>
                         )}
 
-                        {/* Cancel button */}
                         {canCancel && (
                           <Button
                             variant="outline"
@@ -275,7 +269,7 @@ const Trips: React.FC = () => {
                             }}
                           >
                             <XCircle className="mr-1.5 h-4 w-4" />
-                            Аялал цуцлах
+                            {t("cancelTrip")}
                           </Button>
                         )}
                       </div>
@@ -287,24 +281,23 @@ const Trips: React.FC = () => {
           )}
         </div>
 
-        {/* Cancel confirmation dialog */}
         <Dialog open={!!cancelConfirm} onOpenChange={() => setCancelConfirm(null)}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Аялал цуцлах</DialogTitle>
+              <DialogTitle>{t("cancelTrip")}</DialogTitle>
               <DialogDescription>
-                Та энэ аялалыг цуцлахдаа итгэлтэй байна уу? Захиалсан зорчигчдод мэдэгдэл очно.
+                {t("cancelTripConfirm")}
               </DialogDescription>
             </DialogHeader>
             <DialogFooter className="gap-2">
-              <Button variant="outline" onClick={() => setCancelConfirm(null)}>Болих</Button>
+              <Button variant="outline" onClick={() => setCancelConfirm(null)}>{t("stopCancel")}</Button>
               <Button
                 variant="destructive"
                 disabled={cancelling}
                 onClick={() => cancelConfirm && handleCancelTrip(cancelConfirm)}
               >
                 {cancelling ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <XCircle className="h-4 w-4 mr-2" />}
-                Цуцлах
+                {t("cancelAction")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -322,12 +315,12 @@ const Trips: React.FC = () => {
         <div className="container mx-auto px-4 relative z-10">
           <h1 className="font-heading text-4xl font-bold text-center mb-2 animate-fade-in">{t("availableTrips")}</h1>
           <p className="text-center text-muted-foreground mb-8 animate-fade-in" style={{ animationDelay: "100ms" }}>
-            Монгол даяар аялал хайх
+            {t("searchTripsAcross")}
           </p>
           <div className="glass-card-elevated rounded-2xl p-5 max-w-3xl mx-auto animate-fade-in" style={{ animationDelay: "200ms" }}>
             <div className="grid sm:grid-cols-4 gap-3">
-              <LocationSelect value={searchFrom} onChange={setSearchFrom} placeholder="Хаанаас" iconColor="text-primary" />
-              <LocationSelect value={searchTo} onChange={setSearchTo} placeholder="Хаашаа" iconColor="text-accent" />
+              <LocationSelect value={searchFrom} onChange={setSearchFrom} placeholder={t("from")} iconColor="text-primary" />
+              <LocationSelect value={searchTo} onChange={setSearchTo} placeholder={t("to")} iconColor="text-accent" />
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input type="date" className="pl-9 h-11" value={searchDate} onChange={(e) => setSearchDate(e.target.value)} />
@@ -349,7 +342,7 @@ const Trips: React.FC = () => {
               activeTab === "all" ? "bg-primary text-primary-foreground shadow-md" : "bg-muted/50 text-muted-foreground hover:bg-muted"
             }`}
           >
-            <List className="h-4 w-4" /> Бүх аялал
+            <List className="h-4 w-4" /> {t("allTrips")}
           </button>
           <button
             onClick={() => setActiveTab("popular")}
@@ -357,7 +350,7 @@ const Trips: React.FC = () => {
               activeTab === "popular" ? "bg-primary text-primary-foreground shadow-md" : "bg-muted/50 text-muted-foreground hover:bg-muted"
             }`}
           >
-            <Flame className="h-4 w-4" /> Эрэлттэй аялал
+            <Flame className="h-4 w-4" /> {t("popularTripsTab")}
           </button>
         </div>
       </div>
@@ -373,9 +366,9 @@ const Trips: React.FC = () => {
             <div className="w-20 h-20 rounded-3xl bg-muted flex items-center justify-center mx-auto mb-6">
               <MapPin className="h-10 w-10 text-muted-foreground/40" />
             </div>
-            <p className="text-muted-foreground text-xl font-heading font-semibold mb-2">Аялал олдсонгүй</p>
+            <p className="text-muted-foreground text-xl font-heading font-semibold mb-2">{t("noTripsFound")}</p>
             <p className="text-sm text-muted-foreground/70">
-              {trips.length === 0 ? "Одоогоор зөвшөөрөгдсөн аялал байхгүй байна" : "Хайлтын шүүлтүүрээ өөрчилж үзнэ үү"}
+              {trips.length === 0 ? t("noApprovedTrips") : t("changeFilters")}
             </p>
           </div>
         ) : (
@@ -404,17 +397,17 @@ const Trips: React.FC = () => {
                     <Clock className="h-3 w-3" /> {trip.time}
                   </div>
                   <div className="flex items-center gap-1.5 bg-muted/50 rounded-lg px-2 py-1.5">
-                    <Users className="h-3 w-3" /> {trip.seats} суудал
+                    <Users className="h-3 w-3" /> {trip.seats} {t("seats")}
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-heading font-bold text-2xl text-primary">{trip.price?.toLocaleString()}₮</p>
-                    <p className="text-xs text-muted-foreground">суудал бүр</p>
+                    <p className="text-xs text-muted-foreground">{t("eachSeat")}</p>
                   </div>
                   <Button size="sm" className="hover-scale" asChild>
                     <Link to={`/trips/${trip.id}`}>
-                      Захиалах <ArrowRight className="ml-1 h-3.5 w-3.5" />
+                      {t("book")} <ArrowRight className="ml-1 h-3.5 w-3.5" />
                     </Link>
                   </Button>
                 </div>
