@@ -223,7 +223,7 @@ const Register: React.FC = () => {
             <Label className="text-sm font-medium">{t("email")}</Label>
             <Input type="email" value={form.email} onChange={(e) => update("email", e.target.value)} required className="h-11" placeholder="email@example.com" />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label className="text-sm font-medium">{t("password")}</Label>
               <div className="relative">
