@@ -1,25 +1,41 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useLanguage } from "@/contexts/LanguageContext";
 import {
   collection, query, where, getDocs, doc, updateDoc, deleteDoc, getCountFromServer,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import {
   Users, Car, MapPin, CheckCircle, Shield, AlertTriangle, MessageSquare,
-  Loader2, Trash2, Eye, Clock
+  Loader2, Trash2, Eye, Clock, UserPlus, XCircle, Ban, RefreshCw,
+  Phone, Mail, FileText, ChevronDown, ChevronUp
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter
+} from "@/components/ui/dialog";
 
-interface PendingDriver {
+interface UserRecord {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: string;
+  createdAt: any;
+}
+
+interface DriverRecord {
   id: string;
   userId: string;
   verificationStatus: string;
   userName?: string;
   userPhone?: string;
+  userEmail?: string;
+  vehicleType?: string;
+  vehiclePlate?: string;
+  licenseNumber?: string;
 }
 
-interface PendingTrip {
+interface TripRecord {
   id: string;
   driverName: string;
   from: string;
@@ -39,14 +55,16 @@ interface Complaint {
 }
 
 const AdminDashboard: React.FC = () => {
-  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ users: 0, drivers: 0, trips: 0, completed: 0 });
-  const [pendingDrivers, setPendingDrivers] = useState<PendingDriver[]>([]);
-  const [pendingTrips, setPendingTrips] = useState<PendingTrip[]>([]);
+  const [allUsers, setAllUsers] = useState<UserRecord[]>([]);
+  const [allDrivers, setAllDrivers] = useState<DriverRecord[]>([]);
+  const [allTrips, setAllTrips] = useState<TripRecord[]>([]);
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"drivers" | "trips" | "complaints">("drivers");
+  const [activeTab, setActiveTab] = useState<"users" | "drivers" | "alltrips" | "pendingtrips" | "complaints">("users");
+  const [expandedDriver, setExpandedDriver] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -64,41 +82,46 @@ const AdminDashboard: React.FC = () => {
         completed: completedSnap.data().count,
       });
 
-      const driversQuery = query(collection(db, "drivers"), where("verificationStatus", "==", "pending"));
-      const driversSnapshot = await getDocs(driversQuery);
-      const driversList: PendingDriver[] = [];
-      for (const driverDoc of driversSnapshot.docs) {
-        const driverData = driverDoc.data();
-        let userName = "";
-        let userPhone = "";
-        try {
-          const userSnap = await getDocs(collection(db, "users"));
-          const userDoc = userSnap.docs.find((u) => u.id === driverData.userId);
-          if (userDoc) {
-            userName = userDoc.data().name || "";
-            userPhone = userDoc.data().phone || "";
-          }
-        } catch {}
-        driversList.push({ id: driverDoc.id, userId: driverData.userId, verificationStatus: driverData.verificationStatus, userName, userPhone });
-      }
-      setPendingDrivers(driversList);
+      // Fetch all users
+      const usersSnapshot = await getDocs(collection(db, "users"));
+      setAllUsers(usersSnapshot.docs.map(d => ({ id: d.id, ...d.data() } as UserRecord)));
 
-      const tripsQuery = query(collection(db, "trips"), where("status", "==", "pending"));
-      const tripsSnapshot = await getDocs(tripsQuery);
-      setPendingTrips(tripsSnapshot.docs.map((d) => ({ id: d.id, ...d.data() } as PendingTrip)));
+      // Fetch all drivers with user info
+      const driversSnapshot = await getDocs(collection(db, "drivers"));
+      const userMap = new Map(usersSnapshot.docs.map(u => [u.id, u.data()]));
+      const driversList: DriverRecord[] = driversSnapshot.docs.map(d => {
+        const data = d.data();
+        const userData = userMap.get(data.userId);
+        return {
+          id: d.id,
+          userId: data.userId,
+          verificationStatus: data.verificationStatus || "pending",
+          userName: userData?.name || "",
+          userPhone: userData?.phone || "",
+          userEmail: userData?.email || "",
+          vehicleType: data.vehicleType || data.carType || "",
+          vehiclePlate: data.vehiclePlate || data.plateNumber || "",
+          licenseNumber: data.licenseNumber || "",
+        };
+      });
+      setAllDrivers(driversList);
 
+      // Fetch all trips
+      const tripsSnapshot = await getDocs(collection(db, "trips"));
+      setAllTrips(tripsSnapshot.docs.map(d => ({ id: d.id, ...d.data() } as TripRecord)));
+
+      // Fetch complaints
       const complaintsSnapshot = await getDocs(collection(db, "complaints"));
-      const complaintsList: Complaint[] = [];
-      for (const cDoc of complaintsSnapshot.docs) {
+      const complaintsList: Complaint[] = complaintsSnapshot.docs.map(cDoc => {
         const cData = cDoc.data();
-        let userName = "";
-        try {
-          const userSnap = await getDocs(collection(db, "users"));
-          const userDoc = userSnap.docs.find((u) => u.id === cData.userId);
-          if (userDoc) userName = userDoc.data().name || "";
-        } catch {}
-        complaintsList.push({ id: cDoc.id, userName, message: cData.message, createdAt: cData.createdAt });
-      }
+        const userData = userMap.get(cData.userId);
+        return {
+          id: cDoc.id,
+          userName: userData?.name || "",
+          message: cData.message,
+          createdAt: cData.createdAt,
+        };
+      });
       setComplaints(complaintsList);
     } catch (err) {
       console.error("Admin fetch error:", err);
@@ -109,11 +132,50 @@ const AdminDashboard: React.FC = () => {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  const handleMakeAdmin = async (userId: string) => {
+    setActionLoading(userId);
+    try {
+      await updateDoc(doc(db, "users", userId), { role: "admin" });
+      setAllUsers(prev => prev.map(u => u.id === userId ? { ...u, role: "admin" } : u));
+      toast.success("Admin эрх олголоо!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Алдаа гарлаа");
+    } finally { setActionLoading(null); }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    setActionLoading(userId);
+    try {
+      await deleteDoc(doc(db, "users", userId));
+      setAllUsers(prev => prev.filter(u => u.id !== userId));
+      toast.success("Хэрэглэгч устгагдлаа");
+    } catch (err) {
+      console.error(err);
+      toast.error("Устгах амжилтгүй");
+    } finally {
+      setActionLoading(null);
+      setDeleteConfirm(null);
+    }
+  };
+
+  const handleUpdateUserRole = async (userId: string, newRole: string) => {
+    setActionLoading(userId);
+    try {
+      await updateDoc(doc(db, "users", userId), { role: newRole });
+      setAllUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
+      toast.success(`Үүрэг "${newRole}" болгож шинэчиллээ`);
+    } catch (err) {
+      console.error(err);
+      toast.error("Алдаа гарлаа");
+    } finally { setActionLoading(null); }
+  };
+
   const handleDriverAction = async (driverId: string, status: "approved" | "rejected") => {
     setActionLoading(driverId);
     try {
       await updateDoc(doc(db, "drivers", driverId), { verificationStatus: status });
-      setPendingDrivers((prev) => prev.filter((d) => d.id !== driverId));
+      setAllDrivers(prev => prev.map(d => d.id === driverId ? { ...d, verificationStatus: status } : d));
       toast.success(status === "approved" ? "Жолооч зөвшөөрөгдлөө!" : "Жолооч татгалзсан");
     } catch (err) {
       console.error(err);
@@ -121,12 +183,15 @@ const AdminDashboard: React.FC = () => {
     } finally { setActionLoading(null); }
   };
 
-  const handleTripAction = async (tripId: string, status: "approved" | "rejected") => {
+  const handleTripAction = async (tripId: string, status: string) => {
     setActionLoading(tripId);
     try {
       await updateDoc(doc(db, "trips", tripId), { status });
-      setPendingTrips((prev) => prev.filter((t) => t.id !== tripId));
-      toast.success(status === "approved" ? "Аялал зөвшөөрөгдлөө!" : "Аялал татгалзсан");
+      setAllTrips(prev => prev.map(t => t.id === tripId ? { ...t, status } : t));
+      toast.success(
+        status === "approved" ? "Аялал зөвшөөрөгдлөө!" :
+        status === "cancelled" ? "Аялал цуцлагдлаа!" : "Аялал татгалзсан"
+      );
     } catch (err) {
       console.error(err);
       toast.error("Алдаа гарлаа");
@@ -137,13 +202,16 @@ const AdminDashboard: React.FC = () => {
     setActionLoading(complaintId);
     try {
       await deleteDoc(doc(db, "complaints", complaintId));
-      setComplaints((prev) => prev.filter((c) => c.id !== complaintId));
+      setComplaints(prev => prev.filter(c => c.id !== complaintId));
       toast.success("Гомдол устгагдлаа");
     } catch (err) {
       console.error(err);
       toast.error("Устгах амжилтгүй");
     } finally { setActionLoading(null); }
   };
+
+  const pendingDrivers = allDrivers.filter(d => d.verificationStatus === "pending");
+  const pendingTrips = allTrips.filter(t => t.status === "pending");
 
   const statCards = [
     { icon: Users, label: "Нийт хэрэглэгчид", value: stats.users, color: "from-primary to-primary-glow" },
@@ -153,10 +221,47 @@ const AdminDashboard: React.FC = () => {
   ];
 
   const tabs = [
-    { key: "drivers" as const, label: "Жолоочдыг удирдах", icon: Shield, count: pendingDrivers.length },
-    { key: "trips" as const, label: "Аялалуудыг удирдах", icon: MapPin, count: pendingTrips.length },
+    { key: "users" as const, label: "Хэрэглэгчид", icon: Users, count: allUsers.length },
+    { key: "drivers" as const, label: "Жолоочид", icon: Car, count: allDrivers.length, badge: pendingDrivers.length },
+    { key: "pendingtrips" as const, label: "Хүлээгдэж буй аялал", icon: Clock, count: pendingTrips.length },
+    { key: "alltrips" as const, label: "Бүх аялал", icon: MapPin, count: allTrips.length },
     { key: "complaints" as const, label: "Гомдлууд", icon: MessageSquare, count: complaints.length },
   ];
+
+  const statusBadge = (status: string) => {
+    const map: Record<string, string> = {
+      approved: "bg-success/10 text-success",
+      pending: "bg-warning/10 text-warning",
+      rejected: "bg-destructive/10 text-destructive",
+      cancelled: "bg-muted text-muted-foreground",
+      completed: "bg-primary/10 text-primary",
+    };
+    const labelMap: Record<string, string> = {
+      approved: "Зөвшөөрсөн",
+      pending: "Хүлээгдэж буй",
+      rejected: "Татгалзсан",
+      cancelled: "Цуцлагдсан",
+      completed: "Дууссан",
+    };
+    return (
+      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${map[status] || "bg-muted text-muted-foreground"}`}>
+        {labelMap[status] || status}
+      </span>
+    );
+  };
+
+  const roleBadge = (role: string) => {
+    const map: Record<string, string> = {
+      admin: "bg-success/10 text-success",
+      driver: "bg-primary/10 text-primary",
+      passenger: "bg-secondary/10 text-secondary",
+    };
+    return (
+      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${map[role] || "bg-muted text-muted-foreground"}`}>
+        {role}
+      </span>
+    );
+  };
 
   if (loading) {
     return (
@@ -169,16 +274,21 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background pt-20 pb-10">
-      <div className="container mx-auto px-4 max-w-6xl">
-        <div className="mb-10 animate-fade-in">
-          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary text-xs font-semibold px-3 py-1 rounded-full mb-3">
-            <Shield className="h-3 w-3" /> АДМИН
+      <div className="container mx-auto px-4 max-w-7xl">
+        <div className="mb-10 flex items-center justify-between animate-fade-in">
+          <div>
+            <div className="inline-flex items-center gap-2 bg-success/10 text-success text-xs font-semibold px-3 py-1 rounded-full mb-3">
+              <Shield className="h-3 w-3" /> АДМИН
+            </div>
+            <h1 className="font-heading text-3xl md:text-4xl font-bold">Хянах самбар</h1>
+            <p className="text-muted-foreground mt-1">Платформыг удирдах</p>
           </div>
-          <h1 className="font-heading text-3xl md:text-4xl font-bold">Хянах самбар</h1>
-          <p className="text-muted-foreground mt-1">Платформыг удирдах</p>
+          <Button variant="outline" size="sm" onClick={fetchData} disabled={loading}>
+            <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} /> Шинэчлэх
+          </Button>
         </div>
 
-        {/* Stats - real numbers, no fake % */}
+        {/* Stats */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10 animate-stagger">
           {statCards.map((stat, i) => (
             <div key={i} className="glass-card-elevated rounded-2xl p-6 hover-lift group">
@@ -199,7 +309,7 @@ const AdminDashboard: React.FC = () => {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium transition-all duration-300 whitespace-nowrap ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 whitespace-nowrap ${
                 activeTab === tab.key
                   ? "bg-primary text-primary-foreground shadow-md glow-primary"
                   : "bg-muted/50 text-muted-foreground hover:bg-muted"
@@ -207,11 +317,9 @@ const AdminDashboard: React.FC = () => {
             >
               <tab.icon className="h-4 w-4" />
               {tab.label}
-              {tab.count > 0 && (
-                <span className={`text-xs px-2 py-0.5 rounded-full ${
-                  activeTab === tab.key ? "bg-primary-foreground/20" : "bg-primary/10 text-primary"
-                }`}>
-                  {tab.count}
+              {(tab.badge ?? 0) > 0 && (
+                <span className="text-xs px-1.5 py-0.5 rounded-full bg-destructive text-destructive-foreground">
+                  {tab.badge}
                 </span>
               )}
             </button>
@@ -220,40 +328,58 @@ const AdminDashboard: React.FC = () => {
 
         {/* Content */}
         <div className="glass-card-elevated rounded-2xl p-6 md:p-8 animate-fade-in" style={{ animationDelay: "300ms" }}>
-          {activeTab === "drivers" && (
+
+          {/* USERS TAB */}
+          {activeTab === "users" && (
             <div>
               <h2 className="font-heading font-semibold text-xl mb-6 flex items-center gap-2">
-                <Shield className="h-5 w-5 text-primary" /> Жолоочийн баталгаажуулалт
+                <Users className="h-5 w-5 text-primary" /> Бүх хэрэглэгчид ({allUsers.length})
               </h2>
-              {pendingDrivers.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-                    <CheckCircle className="h-8 w-8 text-success" />
-                  </div>
-                  <p className="text-muted-foreground font-medium">Хүлээгдэж буй баталгаажуулалт байхгүй</p>
-                </div>
+              {allUsers.length === 0 ? (
+                <p className="text-center text-muted-foreground py-12">Хэрэглэгч олдсонгүй</p>
               ) : (
-                <div className="space-y-3">
-                  {pendingDrivers.map((d) => (
-                    <div key={d.id} className="flex items-center justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                <div className="space-y-2">
+                  {allUsers.map((u) => (
+                    <div key={u.id} className="flex items-center justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                           <Users className="h-5 w-5 text-primary" />
                         </div>
                         <div>
-                          <p className="font-medium">{d.userName || d.userId}</p>
-                          <p className="text-xs text-muted-foreground">{d.userPhone}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">{u.name || "Нэргүй"}</p>
+                            {roleBadge(u.role)}
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
+                            {u.email && <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{u.email}</span>}
+                            {u.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{u.phone}</span>}
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button size="sm" variant="outline" className="text-xs">
-                          <Eye className="mr-1 h-3 w-3" /> Бичиг баримт
-                        </Button>
-                        <Button size="sm" disabled={actionLoading === d.id} onClick={() => handleDriverAction(d.id, "approved")} className="hover-scale">
-                          {actionLoading === d.id ? <Loader2 className="h-3 w-3 animate-spin" /> : "Зөвшөөрөх"}
-                        </Button>
-                        <Button size="sm" variant="outline" disabled={actionLoading === d.id} onClick={() => handleDriverAction(d.id, "rejected")}>
-                          Татгалзах
+                        {u.role !== "admin" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-xs text-success border-success/30 hover:bg-success/10"
+                            disabled={actionLoading === u.id}
+                            onClick={() => handleMakeAdmin(u.id)}
+                          >
+                            {actionLoading === u.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <><UserPlus className="mr-1 h-3 w-3" />Admin болгох</>}
+                          </Button>
+                        )}
+                        {u.role === "driver" && (
+                          <Button size="sm" variant="outline" className="text-xs" onClick={() => handleUpdateUserRole(u.id, "passenger")} disabled={actionLoading === u.id}>
+                            Passenger болгох
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-xs text-destructive border-destructive/30 hover:bg-destructive/10"
+                          onClick={() => setDeleteConfirm({ id: u.id, name: u.name || u.email })}
+                        >
+                          <Trash2 className="h-3 w-3" />
                         </Button>
                       </div>
                     </div>
@@ -263,10 +389,98 @@ const AdminDashboard: React.FC = () => {
             </div>
           )}
 
-          {activeTab === "trips" && (
+          {/* DRIVERS TAB */}
+          {activeTab === "drivers" && (
             <div>
               <h2 className="font-heading font-semibold text-xl mb-6 flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-accent" /> Аялалын зөвшөөрөл
+                <Car className="h-5 w-5 text-primary" /> Бүх жолоочид ({allDrivers.length})
+              </h2>
+              {allDrivers.length === 0 ? (
+                <p className="text-center text-muted-foreground py-12">Жолооч бүртгэлгүй</p>
+              ) : (
+                <div className="space-y-3">
+                  {allDrivers.map((d) => (
+                    <div key={d.id} className="rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors overflow-hidden">
+                      <div className="flex items-center justify-between p-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                            <Car className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium">{d.userName || d.userId}</p>
+                              {statusBadge(d.verificationStatus)}
+                            </div>
+                            <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
+                              {d.userPhone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{d.userPhone}</span>}
+                              {d.vehicleType && <span className="flex items-center gap-1"><Car className="h-3 w-3" />{d.vehicleType}</span>}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setExpandedDriver(expandedDriver === d.id ? null : d.id)}
+                          >
+                            <Eye className="mr-1 h-3 w-3" /> Дэлгэрэнгүй
+                            {expandedDriver === d.id ? <ChevronUp className="ml-1 h-3 w-3" /> : <ChevronDown className="ml-1 h-3 w-3" />}
+                          </Button>
+                          {d.verificationStatus === "pending" && (
+                            <>
+                              <Button size="sm" disabled={actionLoading === d.id} onClick={() => handleDriverAction(d.id, "approved")}>
+                                {actionLoading === d.id ? <Loader2 className="h-3 w-3 animate-spin" /> : "Зөвшөөрөх"}
+                              </Button>
+                              <Button size="sm" variant="outline" disabled={actionLoading === d.id} onClick={() => handleDriverAction(d.id, "rejected")}>
+                                Татгалзах
+                              </Button>
+                            </>
+                          )}
+                          {d.verificationStatus === "rejected" && (
+                            <Button size="sm" variant="outline" disabled={actionLoading === d.id} onClick={() => handleDriverAction(d.id, "approved")}>
+                              Дахин зөвшөөрөх
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                      {expandedDriver === d.id && (
+                        <div className="px-4 pb-4 pt-0 border-t border-border/50 mt-0">
+                          <div className="grid sm:grid-cols-2 gap-3 pt-3">
+                            <div className="flex items-center gap-2 text-sm">
+                              <FileText className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-muted-foreground">Тээврийн хэрэгсэл:</span>
+                              <span className="font-medium">{d.vehicleType || "—"}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <FileText className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-muted-foreground">Улсын дугаар:</span>
+                              <span className="font-medium">{d.vehiclePlate || "—"}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <FileText className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-muted-foreground">Жолоочийн үнэмлэх:</span>
+                              <span className="font-medium">{d.licenseNumber || "—"}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <Mail className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-muted-foreground">Имэйл:</span>
+                              <span className="font-medium">{d.userEmail || "—"}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* PENDING TRIPS TAB */}
+          {activeTab === "pendingtrips" && (
+            <div>
+              <h2 className="font-heading font-semibold text-xl mb-6 flex items-center gap-2">
+                <Clock className="h-5 w-5 text-warning" /> Хүлээгдэж буй аялалууд ({pendingTrips.length})
               </h2>
               {pendingTrips.length === 0 ? (
                 <div className="text-center py-12">
@@ -280,8 +494,8 @@ const AdminDashboard: React.FC = () => {
                   {pendingTrips.map((trip) => (
                     <div key={trip.id} className="flex items-center justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
                       <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
-                          <MapPin className="h-5 w-5 text-accent" />
+                        <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
+                          <MapPin className="h-5 w-5 text-warning" />
                         </div>
                         <div>
                           <p className="font-medium">{trip.from} → {trip.to}</p>
@@ -293,7 +507,7 @@ const AdminDashboard: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <Button size="sm" disabled={actionLoading === trip.id} onClick={() => handleTripAction(trip.id, "approved")} className="hover-scale">
+                        <Button size="sm" disabled={actionLoading === trip.id} onClick={() => handleTripAction(trip.id, "approved")}>
                           {actionLoading === trip.id ? <Loader2 className="h-3 w-3 animate-spin" /> : "Зөвшөөрөх"}
                         </Button>
                         <Button size="sm" variant="outline" disabled={actionLoading === trip.id} onClick={() => handleTripAction(trip.id, "rejected")}>
@@ -307,10 +521,60 @@ const AdminDashboard: React.FC = () => {
             </div>
           )}
 
+          {/* ALL TRIPS TAB */}
+          {activeTab === "alltrips" && (
+            <div>
+              <h2 className="font-heading font-semibold text-xl mb-6 flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-accent" /> Бүх аялалууд ({allTrips.length})
+              </h2>
+              {allTrips.length === 0 ? (
+                <p className="text-center text-muted-foreground py-12">Аялал олдсонгүй</p>
+              ) : (
+                <div className="space-y-2">
+                  {allTrips.map((trip) => (
+                    <div key={trip.id} className="flex items-center justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
+                          <MapPin className="h-5 w-5 text-accent" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">{trip.from} → {trip.to}</p>
+                            {statusBadge(trip.status)}
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                            <span>{trip.driverName}</span>
+                            <span>{trip.date} {trip.time}</span>
+                            <span>{trip.seats} суудал</span>
+                            <span className="font-medium text-primary">{trip.price?.toLocaleString()}₮</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        {(trip.status === "approved" || trip.status === "pending") && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-xs text-destructive border-destructive/30 hover:bg-destructive/10"
+                            disabled={actionLoading === trip.id}
+                            onClick={() => handleTripAction(trip.id, "cancelled")}
+                          >
+                            {actionLoading === trip.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <><Ban className="mr-1 h-3 w-3" />Цуцлах</>}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* COMPLAINTS TAB */}
           {activeTab === "complaints" && (
             <div>
               <h2 className="font-heading font-semibold text-xl mb-6 flex items-center gap-2">
-                <MessageSquare className="h-5 w-5 text-warning" /> Гомдол & Санал
+                <MessageSquare className="h-5 w-5 text-warning" /> Гомдол & Санал ({complaints.length})
               </h2>
               {complaints.length === 0 ? (
                 <div className="text-center py-12">
@@ -343,6 +607,29 @@ const AdminDashboard: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Хэрэглэгч устгах</DialogTitle>
+            <DialogDescription>
+              "{deleteConfirm?.name}" хэрэглэгчийг устгахдаа итгэлтэй байна уу? Энэ үйлдлийг буцаах боломжгүй.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Болих</Button>
+            <Button
+              variant="destructive"
+              disabled={actionLoading === deleteConfirm?.id}
+              onClick={() => deleteConfirm && handleDeleteUser(deleteConfirm.id)}
+            >
+              {actionLoading === deleteConfirm?.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+              Устгах
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
