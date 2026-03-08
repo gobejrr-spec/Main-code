@@ -348,6 +348,21 @@ const TripDetails: React.FC = () => {
               <img src={monpayQr} alt="MonPay QR" className="w-52 h-52 object-contain" />
             </div>
 
+            {/* Open MonPay App Button (mobile) */}
+            <a
+              href="https://play.google.com/store/apps/details?id=mn.mobicom.candy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block"
+            >
+              <Button variant="outline" className="w-full h-11 rounded-xl font-semibold gap-2" type="button" asChild>
+                <span>
+                  <img src="https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/43/3b/20/433b2070-8580-66d8-1245-be02ed02d6f6/AppIcon-0-0-1x_U007ephone-0-1-0-85-220.png/60x60bb.jpg" alt="MonPay" className="w-5 h-5 rounded" />
+                  MonPay апп нээх
+                </span>
+              </Button>
+            </a>
+
             {/* Account Info */}
             <div className="space-y-2 text-center">
               <div>
