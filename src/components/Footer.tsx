@@ -8,7 +8,7 @@ const Footer: React.FC = () => {
   const { t } = useLanguage();
 
   return (
-    <footer className="bg-foreground text-primary-foreground/80 py-16">
+    <footer className="bg-foreground text-primary-foreground/80 py-20">
       <div className="container mx-auto px-4">
         <div className="grid md:grid-cols-4 gap-10 mb-12">
           <div className="md:col-span-2">
