@@ -297,96 +297,97 @@ const TripDetails: React.FC = () => {
             </div>
           </div>
 
-          {/* Book Button */}
-          <Button
-            className="w-full h-14 text-base font-semibold glow-primary rounded-xl"
-            size="lg"
-            onClick={handleBook}
-            disabled={booking || remainingSeats <= 0}
-          >
-            {booking ? (
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            ) : remainingSeats <= 0 ? (
-              t("seatsFulled")
-            ) : (
-              <>{t("bookAction")} — {calculatedPrice ? `${calculatedPrice.toLocaleString()}₮` : `${trip.price.toLocaleString()}₮`}</>
-            )}
-          </Button>
+          {/* Book Button or Payment Section */}
+          {!showPayment ? (
+            <Button
+              className="w-full h-14 text-base font-semibold glow-primary rounded-xl"
+              size="lg"
+              onClick={handleBook}
+              disabled={booking || remainingSeats <= 0}
+            >
+              {booking ? (
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              ) : remainingSeats <= 0 ? (
+                t("seatsFulled")
+              ) : (
+                <>{t("bookAction")} — {calculatedPrice ? `${calculatedPrice.toLocaleString()}₮` : `${trip.price.toLocaleString()}₮`}</>
+              )}
+            </Button>
+          ) : (
+            <div className="glass-card-elevated rounded-2xl p-6 space-y-4 animate-fade-in">
+              <h3 className="font-heading font-semibold text-lg text-center">{t("paymentTitle")}</h3>
+              <p className="text-sm text-muted-foreground text-center">{t("paymentDesc")}</p>
+
+              {/* Recipient */}
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/40">
+                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                  <User className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="font-semibold text-sm">Э.МӨНГӨНЦЭЦЭГ</p>
+                  <p className="text-xs text-primary font-medium">88744721</p>
+                </div>
+              </div>
+
+              {/* Amount */}
+              <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 text-center">
+                <p className="text-xs text-muted-foreground">{t("paymentAmount")}</p>
+                <p className="text-2xl font-bold text-primary">
+                  {calculatedPrice ? `${calculatedPrice.toLocaleString()}₮` : `${trip.price.toLocaleString()}₮`}
+                </p>
+              </div>
+
+              {/* QR Code */}
+              <div className="flex justify-center p-4 bg-background rounded-xl border border-border">
+                <img src={monpayQr} alt="MonPay QR" className="w-56 h-56 object-contain" />
+              </div>
+
+              {/* Open MonPay App Button (mobile) */}
+              <a
+                href="https://play.google.com/store/apps/details?id=mn.mobicom.candy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block"
+              >
+                <Button variant="outline" className="w-full h-11 rounded-xl font-semibold gap-2" type="button">
+                  MonPay апп нээх
+                </Button>
+              </a>
+
+              {/* Account Info */}
+              <div className="space-y-2 text-center">
+                <div>
+                  <p className="text-xs text-muted-foreground">{t("ibanAccount")}</p>
+                  <p className="text-sm font-mono font-medium text-primary">MN81 0050 0991 0762 6169</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">{t("monpayAccount")}</p>
+                  <p className="text-sm font-mono font-medium">9910 7626 169</p>
+                </div>
+              </div>
+
+              {/* Confirm & Cancel */}
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  className="flex-1 h-12 rounded-xl"
+                  onClick={() => setShowPayment(false)}
+                >
+                  {t("goBack")}
+                </Button>
+                <Button
+                  className="flex-1 h-12 font-semibold rounded-xl"
+                  onClick={handleConfirmPayment}
+                  disabled={booking}
+                >
+                  {booking ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
+                  {t("iHavePaid")}
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Payment QR Dialog */}
-      <Dialog open={showPayment} onOpenChange={setShowPayment}>
-        <DialogContent className="max-w-sm mx-auto">
-          <DialogHeader>
-            <DialogTitle className="text-center">{t("paymentTitle")}</DialogTitle>
-            <DialogDescription className="text-center">{t("paymentDesc")}</DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            {/* Recipient */}
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/40">
-              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                <User className="h-5 w-5 text-muted-foreground" />
-              </div>
-              <div>
-                <p className="font-semibold text-sm">Э.МӨНГӨНЦЭЦЭГ</p>
-                <p className="text-xs text-primary font-medium">88744721</p>
-              </div>
-            </div>
-
-            {/* Amount */}
-            <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 text-center">
-              <p className="text-xs text-muted-foreground">{t("paymentAmount")}</p>
-              <p className="text-2xl font-bold text-primary">
-                {calculatedPrice ? `${calculatedPrice.toLocaleString()}₮` : `${trip.price.toLocaleString()}₮`}
-              </p>
-            </div>
-
-            {/* QR Code */}
-            <div className="flex justify-center p-4 bg-background rounded-xl border border-border">
-              <img src={monpayQr} alt="MonPay QR" className="w-52 h-52 object-contain" />
-            </div>
-
-            {/* Open MonPay App Button (mobile) */}
-            <a
-              href="https://play.google.com/store/apps/details?id=mn.mobicom.candy"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block"
-            >
-              <Button variant="outline" className="w-full h-11 rounded-xl font-semibold gap-2" type="button" asChild>
-                <span>
-                  <img src="https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/43/3b/20/433b2070-8580-66d8-1245-be02ed02d6f6/AppIcon-0-0-1x_U007ephone-0-1-0-85-220.png/60x60bb.jpg" alt="MonPay" className="w-5 h-5 rounded" />
-                  MonPay апп нээх
-                </span>
-              </Button>
-            </a>
-
-            {/* Account Info */}
-            <div className="space-y-2 text-center">
-              <div>
-                <p className="text-xs text-muted-foreground">{t("ibanAccount")}</p>
-                <p className="text-sm font-mono font-medium text-primary">MN81 0050 0991 0762 6169</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">{t("monpayAccount")}</p>
-                <p className="text-sm font-mono font-medium">9910 7626 169</p>
-              </div>
-            </div>
-
-            {/* Confirm Button */}
-            <Button
-              className="w-full h-12 font-semibold rounded-xl"
-              onClick={handleConfirmPayment}
-              disabled={booking}
-            >
-              {booking ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
-              {t("iHavePaid")}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
