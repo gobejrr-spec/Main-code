@@ -40,6 +40,7 @@ const TripDetails: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [bookedSeats, setBookedSeats] = useState(0);
   const [booking, setBooking] = useState(false);
+  const [pricePerKm, setPricePerKm] = useState<number>(150);
 
   useEffect(() => {
     const fetchTrip = async () => {
