@@ -8,7 +8,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import {
   Users, Car, MapPin, CheckCircle, Shield, AlertTriangle, MessageSquare,
   Loader2, Trash2, Eye, Clock, UserPlus, XCircle, Ban, RefreshCw,
-  Phone, Mail, FileText, ChevronDown, ChevronUp, Image, Settings, Save
+  Phone, Mail, FileText, ChevronDown, ChevronUp, Image, Settings, Save, CreditCard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,6 +62,20 @@ interface Complaint {
   createdAt: any;
 }
 
+interface BookingRecord {
+  id: string;
+  userId: string;
+  tripId: string;
+  passengerName: string;
+  passengerPhone: string;
+  seats: number;
+  status: string;
+  createdAt: any;
+  tripFrom?: string;
+  tripTo?: string;
+  tripDate?: string;
+}
+
 const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -71,8 +85,9 @@ const AdminDashboard: React.FC = () => {
   const [allDrivers, setAllDrivers] = useState<DriverRecord[]>([]);
   const [allTrips, setAllTrips] = useState<TripRecord[]>([]);
   const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [allBookings, setAllBookings] = useState<BookingRecord[]>([]);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"users" | "drivers" | "alltrips" | "pendingtrips" | "complaints" | "settings">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "drivers" | "alltrips" | "pendingtrips" | "complaints" | "settings" | "bookings">("users");
   const [expandedDriver, setExpandedDriver] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; type: "user" | "driver" } | null>(null);
   const [photoModal, setPhotoModal] = useState<{ url: string; label: string } | null>(null);
@@ -152,6 +167,28 @@ const AdminDashboard: React.FC = () => {
         };
       });
       setComplaints(complaintsList);
+
+      // Fetch bookings
+      const bookingsSnapshot = await getDocs(collection(db, "bookings"));
+      const tripMap = new Map(tripsSnapshot.docs.map(t => [t.id, t.data()]));
+      const bookingsList: BookingRecord[] = bookingsSnapshot.docs.map(bDoc => {
+        const bData = bDoc.data();
+        const tripData = tripMap.get(bData.tripId);
+        return {
+          id: bDoc.id,
+          userId: bData.userId,
+          tripId: bData.tripId,
+          passengerName: bData.passengerName || "",
+          passengerPhone: bData.passengerPhone || "",
+          seats: bData.seats || 1,
+          status: bData.status || "pending",
+          createdAt: bData.createdAt,
+          tripFrom: tripData?.from || "",
+          tripTo: tripData?.to || "",
+          tripDate: tripData?.date || "",
+        };
+      });
+      setAllBookings(bookingsList);
 
       try {
         const settingsDoc = await getDoc(doc(db, "settings", "platform"));
@@ -275,8 +312,21 @@ const AdminDashboard: React.FC = () => {
     } finally { setActionLoading(null); }
   };
 
+  const handleBookingAction = async (bookingId: string, status: "confirmed" | "rejected") => {
+    setActionLoading(bookingId);
+    try {
+      await updateDoc(doc(db, "bookings", bookingId), { status });
+      setAllBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status } : b));
+      toast.success(status === "confirmed" ? t("bookingConfirmed") : t("bookingRejected"));
+    } catch (err) {
+      console.error(err);
+      toast.error(t("errorOccurred"));
+    } finally { setActionLoading(null); }
+  };
+
   const pendingDrivers = allDrivers.filter(d => d.verificationStatus === "pending");
   const pendingTrips = allTrips.filter(t => t.status === "pending");
+  const pendingBookings = allBookings.filter(b => b.status === "pending");
 
   const statCards = [
     { icon: Users, label: t("totalUsers"), value: stats.users, color: "from-primary to-primary-glow" },
@@ -288,6 +338,7 @@ const AdminDashboard: React.FC = () => {
   const tabs = [
     { key: "users" as const, label: t("usersTab"), icon: Users, count: allUsers.length },
     { key: "drivers" as const, label: t("driversTab"), icon: Car, count: allDrivers.length, badge: pendingDrivers.length },
+    { key: "bookings" as const, label: t("bookingsTab"), icon: CreditCard, count: allBookings.length, badge: pendingBookings.length },
     { key: "pendingtrips" as const, label: t("pendingTripsTab"), icon: Clock, count: pendingTrips.length },
     { key: "alltrips" as const, label: t("allTripsTab"), icon: MapPin, count: allTrips.length },
     { key: "complaints" as const, label: t("complaintsTab"), icon: MessageSquare, count: complaints.length },
@@ -601,7 +652,52 @@ const AdminDashboard: React.FC = () => {
             </div>
           )}
 
-          {/* PENDING TRIPS TAB */}
+          {/* BOOKINGS TAB */}
+          {activeTab === "bookings" && (
+            <div>
+              <h2 className="font-heading font-semibold text-xl mb-6 flex items-center gap-2">
+                <CreditCard className="h-5 w-5 text-primary" /> {t("pendingBookings")} ({pendingBookings.length})
+              </h2>
+              {pendingBookings.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle className="h-8 w-8 text-success" />
+                  </div>
+                  <p className="text-muted-foreground font-medium">{t("noPendingBookings")}</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {pendingBookings.map((b) => (
+                    <div key={b.id} className="flex items-center justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
+                          <CreditCard className="h-5 w-5 text-warning" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{b.passengerName}</p>
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                            {b.passengerPhone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{b.passengerPhone}</span>}
+                            <span>{b.tripFrom} → {b.tripTo}</span>
+                            <span>{b.tripDate}</span>
+                            <span>{b.seats} {t("seats")}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" disabled={actionLoading === b.id} onClick={() => handleBookingAction(b.id, "confirmed")}>
+                          {actionLoading === b.id ? <Loader2 className="h-3 w-3 animate-spin" /> : t("confirmPayment")}
+                        </Button>
+                        <Button size="sm" variant="outline" disabled={actionLoading === b.id} onClick={() => handleBookingAction(b.id, "rejected")}>
+                          {t("rejectPayment")}
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {activeTab === "pendingtrips" && (
             <div>
               <h2 className="font-heading font-semibold text-xl mb-6 flex items-center gap-2">
