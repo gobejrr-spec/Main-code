@@ -70,8 +70,8 @@ const Register: React.FC = () => {
       toast.error("Нууц үг таарахгүй байна");
       return;
     }
-    if (form.password.length < 6) {
-      toast.error("Нууц үг хамгийн багадаа 6 тэмдэгт байна");
+    if (form.password.length < 8) {
+      toast.error("Нууц үг хамгийн багадаа 8 тэмдэгт байна");
       return;
     }
     if (form.phone.replace(/\D/g, "").length < 8) {
@@ -205,7 +205,16 @@ const Register: React.FC = () => {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label className="text-sm font-medium">{t("name")}</Label>
-                <Input value={form.name} onChange={(e) => update("name", e.target.value)} required className="h-11" placeholder="Баатар" />
+                <Input
+                  value={form.name}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^а-яА-ЯөӨүҮёЁ\s-]/g, "");
+                    update("name", val);
+                  }}
+                  required
+                  className="h-11"
+                  placeholder="Баатар"
+                />
               </div>
               <div className="space-y-2">
                 <Label className="text-sm font-medium">{t("phone")}</Label>
