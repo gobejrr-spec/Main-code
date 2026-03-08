@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { MapPin, Calendar, Clock, Users, Plus, Upload, Shield, AlertCircle, Loader2, CheckCircle, Lock } from "lucide-react";
+import { MapPin, Calendar, Clock, Users, Plus, Upload, Shield, AlertCircle, Loader2, CheckCircle, Lock, X, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { collection, query, where, getDocs, addDoc, serverTimestamp, doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { collection, query, where, getDocs, addDoc, serverTimestamp, doc, getDoc, setDoc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { db, storage } from "@/lib/firebase";
 import { toast } from "sonner";
 import LocationSelect from "@/components/LocationSelect";
 
@@ -20,6 +21,17 @@ interface Trip {
   price: number;
   status: string;
 }
+
+const PHOTO_LABELS = [
+  { key: "idFront", label: "Иргэний үнэмлэх (Урд)" },
+  { key: "idBack", label: "Иргэний үнэмлэх (Ар)" },
+  { key: "vehicleRegistration", label: "Тээврийн хэрэгслийн гэрчилгээ" },
+  { key: "carFront", label: "Машины урд зураг" },
+  { key: "carBack", label: "Машины хойд зураг" },
+  { key: "carLeft", label: "Машины зүүн зураг" },
+  { key: "carRight", label: "Машины баруун зураг" },
+  { key: "carInterior", label: "Дотор зураг" },
+];
 
 const DriverDashboard: React.FC = () => {
   const { t } = useLanguage();
@@ -39,17 +51,33 @@ const DriverDashboard: React.FC = () => {
   const [tripPrice, setTripPrice] = useState("");
   const [carType, setCarType] = useState("");
 
+  // Driver document fields
+  const [vehiclePlate, setVehiclePlate] = useState("");
+  const [licenseNumber, setLicenseNumber] = useState("");
+  const [driverEmail, setDriverEmail] = useState("");
+  const [vehicleType, setVehicleType] = useState("");
+
+  // Photo uploads
+  const [photos, setPhotos] = useState<Record<string, File | null>>({});
+  const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
+  const [uploadingDocs, setUploadingDocs] = useState(false);
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
   useEffect(() => {
     const fetchData = async () => {
       if (!user) return;
       setLoading(true);
       try {
-        // Fetch verification status
         const driverDoc = await getDoc(doc(db, "drivers", user.uid));
         if (driverDoc.exists()) {
-          setVerificationStatus(driverDoc.data().verificationStatus || "pending");
+          const data = driverDoc.data();
+          setVerificationStatus(data.verificationStatus || "pending");
+          setVehiclePlate(data.vehiclePlate || "");
+          setLicenseNumber(data.licenseNumber || "");
+          setDriverEmail(data.email || "");
+          setVehicleType(data.vehicleType || "");
+          if (data.photos) setPhotoUrls(data.photos);
         }
-        // Fetch trips
         const q = query(collection(db, "trips"), where("driverId", "==", user.uid));
         const snapshot = await getDocs(q);
         setTrips(snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Trip)));
@@ -63,6 +91,53 @@ const DriverDashboard: React.FC = () => {
   }, [user]);
 
   const isVerified = verificationStatus === "approved";
+
+  const handlePhotoSelect = (key: string, file: File | null) => {
+    if (!file) return;
+    setPhotos(prev => ({ ...prev, [key]: file }));
+  };
+
+  const handleSubmitVerification = async () => {
+    if (!user) return;
+    if (!vehiclePlate || !licenseNumber || !vehicleType) {
+      toast.error("Тээврийн хэрэгсэл, улсын дугаар, жолоочийн үнэмлэхийн дугаар бөглөнө үү");
+      return;
+    }
+    setUploadingDocs(true);
+    try {
+      const uploadedPhotos: Record<string, string> = { ...photoUrls };
+      
+      for (const [key, file] of Object.entries(photos)) {
+        if (file) {
+          const storageRef = ref(storage, `drivers/${user.uid}/${key}_${Date.now()}`);
+          const snapshot = await uploadBytes(storageRef, file);
+          const url = await getDownloadURL(snapshot.ref);
+          uploadedPhotos[key] = url;
+        }
+      }
+
+      await setDoc(doc(db, "drivers", user.uid), {
+        userId: user.uid,
+        vehicleType,
+        vehiclePlate,
+        licenseNumber,
+        email: driverEmail || profile?.phone || "",
+        photos: uploadedPhotos,
+        verificationStatus: "pending",
+        updatedAt: serverTimestamp(),
+      }, { merge: true });
+
+      setPhotoUrls(uploadedPhotos);
+      setPhotos({});
+      setVerificationStatus("pending");
+      toast.success("Бичиг баримтууд амжилттай илгээгдлээ! Админ шалгаж баталгаажуулна.");
+    } catch (err) {
+      console.error(err);
+      toast.error("Алдаа гарлаа. Дахин оролдоно уу.");
+    } finally {
+      setUploadingDocs(false);
+    }
+  };
 
   const handleCreateTrip = async () => {
     if (!user || !tripFrom || !tripTo || !tripDate || !tripTime || !tripSeats || !tripPrice) {
@@ -85,7 +160,7 @@ const DriverDashboard: React.FC = () => {
         status: "pending",
         createdAt: serverTimestamp(),
       });
-      toast.success("Аялал амжилттай илгээгдлээ! Админ баталгаажуулсны дараа харагдана.");
+      toast.success("Аялал амжилттай илгээгдлээ!");
       setShowCreateTrip(false);
       setTripFrom(""); setTripTo(""); setTripDate(""); setTripTime(""); setTripSeats(""); setTripPrice(""); setCarType("");
       const q = query(collection(db, "trips"), where("driverId", "==", user.uid));
@@ -118,10 +193,10 @@ const DriverDashboard: React.FC = () => {
             <AlertCircle className="h-5 w-5 text-warning mt-0.5" />
             <div>
               <p className="font-medium text-sm">
-                {verificationStatus === "rejected" ? "Баталгаажуулалт татгалзсан" : t("verificationPending")}
+                {verificationStatus === "rejected" ? "Баталгаажуулалт татгалзсан. Дахин илгээнэ үү." : t("verificationPending")}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                Бичиг баримтаа байршуулж баталгаажуулна уу. Баталгаажсаны дараа аялал оруулж болно.
+                Бичиг баримт, зургуудаа байршуулж баталгаажуулна уу.
               </p>
             </div>
           </div>
@@ -135,25 +210,82 @@ const DriverDashboard: React.FC = () => {
           </div>
         )}
 
-        {/* Verification Documents - only if not verified */}
+        {/* Verification Documents Form */}
         {!isVerified && (
           <div className="glass-card-elevated rounded-2xl p-6 mb-6 animate-fade-in" style={{ animationDelay: "100ms" }}>
             <h2 className="font-heading font-semibold text-lg mb-4 flex items-center gap-2">
               <Shield className="h-5 w-5 text-primary" /> {t("verification")}
             </h2>
-            <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-3">
-              {[
-                "Иргэний үнэмлэх (Урд)", "Иргэний үнэмлэх (Ар)", "Тээврийн хэрэгслийн гэрчилгээ",
-                "Машины урд зураг", "Машины хойд зураг", "Машины зүүн зураг",
-                "Машины баруун зураг", "Дотор зураг",
-              ].map((label) => (
-                <div key={label} className="border-2 border-dashed border-border rounded-xl p-4 text-center hover:border-primary/50 transition-colors cursor-pointer group">
-                  <Upload className="h-5 w-5 mx-auto text-muted-foreground mb-2 group-hover:text-primary transition-colors" />
-                  <p className="text-xs text-muted-foreground">{label}</p>
-                </div>
-              ))}
+
+            {/* Document info fields */}
+            <div className="grid sm:grid-cols-2 gap-4 mb-6">
+              <div className="space-y-2">
+                <Label>Тээврийн хэрэгслийн төрөл *</Label>
+                <Input placeholder="Toyota Prius, Hyundai Starex г.м." value={vehicleType} onChange={e => setVehicleType(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Улсын дугаар *</Label>
+                <Input placeholder="0000 УБА" value={vehiclePlate} onChange={e => setVehiclePlate(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Жолоочийн үнэмлэхийн дугаар *</Label>
+                <Input placeholder="AA00000000" value={licenseNumber} onChange={e => setLicenseNumber(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Имэйл</Label>
+                <Input type="email" placeholder="example@mail.com" value={driverEmail} onChange={e => setDriverEmail(e.target.value)} />
+              </div>
             </div>
-            <Button className="mt-4">{t("submit")}</Button>
+
+            {/* Photo uploads */}
+            <h3 className="font-medium text-sm mb-3">Зургууд байршуулах</h3>
+            <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-3">
+              {PHOTO_LABELS.map(({ key, label }) => {
+                const preview = photos[key] ? URL.createObjectURL(photos[key]!) : photoUrls[key];
+                return (
+                  <div
+                    key={key}
+                    className="relative border-2 border-dashed border-border rounded-xl overflow-hidden hover:border-primary/50 transition-colors cursor-pointer group aspect-[4/3]"
+                    onClick={() => fileInputRefs.current[key]?.click()}
+                  >
+                    <input
+                      ref={el => { fileInputRefs.current[key] = el; }}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={e => handlePhotoSelect(key, e.target.files?.[0] || null)}
+                    />
+                    {preview ? (
+                      <>
+                        <img src={preview} alt={label} className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <Upload className="h-5 w-5 text-white" />
+                        </div>
+                        <button
+                          className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPhotos(prev => { const n = { ...prev }; delete n[key]; return n; });
+                          }}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full p-3">
+                        <Image className="h-5 w-5 text-muted-foreground mb-1 group-hover:text-primary transition-colors" />
+                        <p className="text-[10px] text-muted-foreground text-center leading-tight">{label}</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <Button className="mt-5" onClick={handleSubmitVerification} disabled={uploadingDocs}>
+              {uploadingDocs ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
+              Илгээх
+            </Button>
           </div>
         )}
 

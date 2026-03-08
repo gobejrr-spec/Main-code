@@ -6,7 +6,7 @@ import { db } from "@/lib/firebase";
 import {
   Users, Car, MapPin, CheckCircle, Shield, AlertTriangle, MessageSquare,
   Loader2, Trash2, Eye, Clock, UserPlus, XCircle, Ban, RefreshCw,
-  Phone, Mail, FileText, ChevronDown, ChevronUp
+  Phone, Mail, FileText, ChevronDown, ChevronUp, Image
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -33,6 +33,8 @@ interface DriverRecord {
   vehicleType?: string;
   vehiclePlate?: string;
   licenseNumber?: string;
+  email?: string;
+  photos?: Record<string, string>;
 }
 
 interface TripRecord {
@@ -54,6 +56,17 @@ interface Complaint {
   createdAt: any;
 }
 
+const PHOTO_LABELS: Record<string, string> = {
+  idFront: "Иргэний үнэмлэх (Урд)",
+  idBack: "Иргэний үнэмлэх (Ар)",
+  vehicleRegistration: "ТХ гэрчилгээ",
+  carFront: "Машин (Урд)",
+  carBack: "Машин (Хойд)",
+  carLeft: "Машин (Зүүн)",
+  carRight: "Машин (Баруун)",
+  carInterior: "Дотор",
+};
+
 const AdminDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ users: 0, drivers: 0, trips: 0, completed: 0 });
@@ -65,6 +78,7 @@ const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"users" | "drivers" | "alltrips" | "pendingtrips" | "complaints">("users");
   const [expandedDriver, setExpandedDriver] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
+  const [photoModal, setPhotoModal] = useState<{ url: string; label: string } | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -82,11 +96,9 @@ const AdminDashboard: React.FC = () => {
         completed: completedSnap.data().count,
       });
 
-      // Fetch all users
       const usersSnapshot = await getDocs(collection(db, "users"));
       setAllUsers(usersSnapshot.docs.map(d => ({ id: d.id, ...d.data() } as UserRecord)));
 
-      // Fetch all drivers with user info
       const driversSnapshot = await getDocs(collection(db, "drivers"));
       const userMap = new Map(usersSnapshot.docs.map(u => [u.id, u.data()]));
       const driversList: DriverRecord[] = driversSnapshot.docs.map(d => {
@@ -102,15 +114,15 @@ const AdminDashboard: React.FC = () => {
           vehicleType: data.vehicleType || data.carType || "",
           vehiclePlate: data.vehiclePlate || data.plateNumber || "",
           licenseNumber: data.licenseNumber || "",
+          email: data.email || "",
+          photos: data.photos || {},
         };
       });
       setAllDrivers(driversList);
 
-      // Fetch all trips
       const tripsSnapshot = await getDocs(collection(db, "trips"));
       setAllTrips(tripsSnapshot.docs.map(d => ({ id: d.id, ...d.data() } as TripRecord)));
 
-      // Fetch complaints
       const complaintsSnapshot = await getDocs(collection(db, "complaints"));
       const complaintsList: Complaint[] = complaintsSnapshot.docs.map(cDoc => {
         const cData = cDoc.data();
@@ -237,11 +249,8 @@ const AdminDashboard: React.FC = () => {
       completed: "bg-primary/10 text-primary",
     };
     const labelMap: Record<string, string> = {
-      approved: "Зөвшөөрсөн",
-      pending: "Хүлээгдэж буй",
-      rejected: "Татгалзсан",
-      cancelled: "Цуцлагдсан",
-      completed: "Дууссан",
+      approved: "Зөвшөөрсөн", pending: "Хүлээгдэж буй", rejected: "Татгалзсан",
+      cancelled: "Цуцлагдсан", completed: "Дууссан",
     };
     return (
       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${map[status] || "bg-muted text-muted-foreground"}`}>
@@ -443,9 +452,12 @@ const AdminDashboard: React.FC = () => {
                           )}
                         </div>
                       </div>
+
+                      {/* Expanded driver details with photos */}
                       {expandedDriver === d.id && (
                         <div className="px-4 pb-4 pt-0 border-t border-border/50 mt-0">
-                          <div className="grid sm:grid-cols-2 gap-3 pt-3">
+                          {/* Document info */}
+                          <div className="grid sm:grid-cols-2 gap-3 pt-3 mb-4">
                             <div className="flex items-center gap-2 text-sm">
                               <FileText className="h-4 w-4 text-muted-foreground" />
                               <span className="text-muted-foreground">Тээврийн хэрэгсэл:</span>
@@ -464,9 +476,34 @@ const AdminDashboard: React.FC = () => {
                             <div className="flex items-center gap-2 text-sm">
                               <Mail className="h-4 w-4 text-muted-foreground" />
                               <span className="text-muted-foreground">Имэйл:</span>
-                              <span className="font-medium">{d.userEmail || "—"}</span>
+                              <span className="font-medium">{d.email || d.userEmail || "—"}</span>
                             </div>
                           </div>
+
+                          {/* Photos grid */}
+                          {d.photos && Object.keys(d.photos).length > 0 ? (
+                            <div>
+                              <h4 className="text-sm font-medium mb-2 flex items-center gap-1.5">
+                                <Image className="h-4 w-4 text-primary" /> Байршуулсан зургууд
+                              </h4>
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                {Object.entries(d.photos).map(([key, url]) => (
+                                  <div
+                                    key={key}
+                                    className="relative rounded-lg overflow-hidden aspect-[4/3] cursor-pointer group border border-border"
+                                    onClick={() => setPhotoModal({ url, label: PHOTO_LABELS[key] || key })}
+                                  >
+                                    <img src={url} alt={PHOTO_LABELS[key] || key} className="w-full h-full object-cover" />
+                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
+                                      <span className="text-[10px] text-white font-medium">{PHOTO_LABELS[key] || key}</span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-xs text-muted-foreground italic">Зураг байршуулаагүй байна</p>
+                          )}
                         </div>
                       )}
                     </div>
@@ -628,6 +665,18 @@ const AdminDashboard: React.FC = () => {
               Устгах
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Photo Fullscreen Modal */}
+      <Dialog open={!!photoModal} onOpenChange={() => setPhotoModal(null)}>
+        <DialogContent className="max-w-3xl p-2">
+          <DialogHeader className="px-4 pt-3">
+            <DialogTitle>{photoModal?.label}</DialogTitle>
+          </DialogHeader>
+          {photoModal && (
+            <img src={photoModal.url} alt={photoModal.label} className="w-full rounded-lg object-contain max-h-[70vh]" />
+          )}
         </DialogContent>
       </Dialog>
     </div>
