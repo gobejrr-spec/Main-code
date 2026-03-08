@@ -848,8 +848,7 @@ const AdminDashboard: React.FC = () => {
             </div>
           )}
 
-          {/* AIMAGS TAB */}
-          {activeTab === "aimags" && <AdminAimagTab />}
+          {/* SETTINGS TAB */}
 
           {/* SETTINGS TAB */}
           {activeTab === "settings" && (
