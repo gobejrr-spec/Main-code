@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { Search, MapPin, Calendar, Clock, Users, ArrowRight, Loader2, Flame, List, Car, XCircle, Phone, User } from "lucide-react";
+import { Search, MapPin, Calendar, Clock, Users, ArrowRight, Loader2, Flame, List, Car, XCircle, Phone, User, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { collection, query, where, getDocs, doc, updateDoc } from "firebase/firestore";
@@ -243,15 +243,25 @@ const Trips: React.FC = () => {
                                     </p>
                                   </div>
                                 </div>
-                                <div className="text-right">
-                                  <p className="text-sm font-medium">{b.seats || 1} {t("seats")}</p>
-                                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                                    b.status === "confirmed" ? "bg-success/10 text-success" :
-                                    b.status === "cancelled" ? "bg-destructive/10 text-destructive" :
-                                    "bg-warning/10 text-warning"
-                                  }`}>
-                                    {b.status === "confirmed" ? t("confirmed") : b.status === "cancelled" ? t("cancelled") : t("pending")}
-                                  </span>
+                                <div className="flex items-center gap-2">
+                                  {b.status === "confirmed" && (
+                                    <Link to={`/chat/${b.id}`}>
+                                      <Button size="sm" variant="outline" className="rounded-lg gap-1 text-xs h-7">
+                                        <MessageSquare className="h-3 w-3" />
+                                        {t("openChat")}
+                                      </Button>
+                                    </Link>
+                                  )}
+                                  <div className="text-right">
+                                    <p className="text-sm font-medium">{b.seats || 1} {t("seats")}</p>
+                                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                                      b.status === "confirmed" ? "bg-success/10 text-success" :
+                                      b.status === "cancelled" ? "bg-destructive/10 text-destructive" :
+                                      "bg-warning/10 text-warning"
+                                    }`}>
+                                      {b.status === "confirmed" ? t("confirmed") : b.status === "cancelled" ? t("cancelled") : t("pending")}
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
                             ))}
