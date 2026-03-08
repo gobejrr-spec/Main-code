@@ -484,7 +484,7 @@ const DriverDashboard: React.FC = () => {
             <div className="flex gap-3 mt-5">
               <Button onClick={handleCreateTrip} disabled={submitting} className="hover-scale">
                 {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                Илгээх
+                Нийтлэх
               </Button>
               <Button variant="outline" onClick={() => setShowCreateTrip(false)}>Болих</Button>
             </div>
