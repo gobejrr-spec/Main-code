@@ -2,8 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import {
   collection, query, where, getDocs, doc, updateDoc, deleteDoc, getCountFromServer, setDoc, serverTimestamp,
 } from "firebase/firestore";
-import { db, auth } from "@/lib/firebase";
-import { useAuth } from "@/contexts/AuthContext";
+import { db } from "@/lib/firebase";
 import {
   Users, Car, MapPin, CheckCircle, Shield, AlertTriangle, MessageSquare,
   Loader2, Trash2, Eye, Clock, UserPlus, XCircle, Ban, RefreshCw,
@@ -71,7 +70,6 @@ const PHOTO_LABELS: Record<string, string> = {
 };
 
 const AdminDashboard: React.FC = () => {
-  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ users: 0, drivers: 0, trips: 0, completed: 0 });
   const [allUsers, setAllUsers] = useState<UserRecord[]>([]);
@@ -85,12 +83,6 @@ const AdminDashboard: React.FC = () => {
   const [photoModal, setPhotoModal] = useState<{ url: string; label: string } | null>(null);
 
   const fetchData = useCallback(async () => {
-    if (!auth.currentUser) {
-      console.error("Auth: Хэрэглэгч нэвтрээгүй байна!", auth.currentUser);
-      setLoading(false);
-      return;
-    }
-    console.log("Auth: Нэвтэрсэн хэрэглэгч:", auth.currentUser.uid, auth.currentUser.email);
     setLoading(true);
     try {
       const [usersSnap, driversSnap, tripsSnap, completedSnap] = await Promise.all([
@@ -154,9 +146,7 @@ const AdminDashboard: React.FC = () => {
     }
   }, []);
 
-  useEffect(() => { 
-    if (user) fetchData(); 
-  }, [user, fetchData]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleMakeAdmin = async (userId: string) => {
     setActionLoading(userId);
@@ -220,7 +210,7 @@ const AdminDashboard: React.FC = () => {
       const driver = allDrivers.find(d => d.id === driverId);
       await deleteDoc(doc(db, "drivers", driverId));
       if (driver) {
-        await setDoc(doc(db, "users", driver.userId), { role: "passenger" }, { merge: true });
+        await updateDoc(doc(db, "users", driver.userId), { role: "passenger" });
         setAllUsers(prev => prev.map(u => u.id === driver.userId ? { ...u, role: "passenger" } : u));
       }
       setAllDrivers(prev => prev.filter(d => d.id !== driverId));
