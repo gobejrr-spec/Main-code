@@ -573,7 +573,7 @@ const DriverDashboard: React.FC = () => {
                           {trip.from} → {trip.to}
                         </div>
                         <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
-                          <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {trip.date}</span>
+                          <span className="flex items-center gap-1"><CalendarIcon className="h-3 w-3" /> {trip.date}</span>
                           <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {trip.time}</span>
                           <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {trip.seats} {t("seats")}</span>
                         </div>
