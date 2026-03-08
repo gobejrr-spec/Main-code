@@ -250,20 +250,170 @@ const DriverDashboard: React.FC = () => {
           <p className="text-muted-foreground mt-1">Аялалаа удирдах самбар</p>
         </div>
 
-        {/* Verification Status */}
-        {!isVerified ? (
-          <div className="glass-card-elevated rounded-2xl p-5 mb-6 border-l-4 border-warning flex items-start gap-3 animate-fade-in">
-            <AlertCircle className="h-5 w-5 text-warning mt-0.5" />
-            <div>
-              <p className="font-medium text-sm">
-                {verificationStatus === "rejected" ? "Баталгаажуулалт татгалзсан. Дахин илгээнэ үү." : t("verificationPending")}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Бичиг баримт, зургуудаа байршуулж баталгаажуулна уу.
-              </p>
+        {/* STATE 1: Pending - Waiting for admin approval */}
+        {isPending && !isRejected && (
+          <div className="animate-fade-in text-center py-16">
+            <div className="w-20 h-20 rounded-full bg-warning/10 flex items-center justify-center mx-auto mb-6">
+              <Hourglass className="h-10 w-10 text-warning animate-pulse" />
+            </div>
+            <h2 className="font-heading text-2xl font-bold mb-2">Баталгаажуулалт хүлээгдэж байна</h2>
+            <p className="text-muted-foreground max-w-md mx-auto mb-4">
+              Таны бичиг баримтууд амжилттай илгээгдсэн. Админ шалгаж баталгаажуулсны дараа та аялал оруулах боломжтой болно.
+            </p>
+            <div className="inline-flex items-center gap-2 bg-warning/10 text-warning text-sm font-medium px-4 py-2 rounded-full">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Хянагдаж байна...
             </div>
           </div>
-        ) : (
+        )}
+
+        {/* STATE 2: Rejected or Not submitted - Show verification form */}
+        {needsSubmission && (
+          <>
+            <div className="glass-card-elevated rounded-2xl p-5 mb-6 border-l-4 border-warning flex items-start gap-3 animate-fade-in">
+              <AlertCircle className="h-5 w-5 text-warning mt-0.5" />
+              <div>
+                <p className="font-medium text-sm">
+                  {isRejected ? "Баталгаажуулалт татгалзсан. Дахин илгээнэ үү." : t("verificationPending")}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Бичиг баримт, зургуудаа байршуулж баталгаажуулна уу.
+                </p>
+              </div>
+            </div>
+
+            <div className="glass-card-elevated rounded-2xl p-6 mb-6 animate-fade-in" style={{ animationDelay: "100ms" }}>
+              <h2 className="font-heading font-semibold text-lg mb-4 flex items-center gap-2">
+                <Shield className="h-5 w-5 text-primary" /> {t("verification")}
+              </h2>
+
+              {/* Document info fields */}
+              <div className="grid sm:grid-cols-2 gap-4 mb-6">
+                {/* Vehicle Brand */}
+                <div className="space-y-2">
+                  <Label>Машины брэнд *</Label>
+                  <Select value={selectedBrand} onValueChange={(val) => { setSelectedBrand(val); setSelectedModel(""); }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Брэнд сонгох" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-60">
+                      {Object.keys(CAR_BRANDS).map(brand => (
+                        <SelectItem key={brand} value={brand}>{brand}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Vehicle Model */}
+                <div className="space-y-2">
+                  <Label>Машины модел *</Label>
+                  <Select value={selectedModel} onValueChange={setSelectedModel} disabled={!selectedBrand}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={selectedBrand ? "Модел сонгох" : "Эхлээд брэнд сонгоно уу"} />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-60">
+                      {selectedBrand && CAR_BRANDS[selectedBrand]?.map(model => (
+                        <SelectItem key={model} value={model}>{model}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* License Plate */}
+                <div className="space-y-2">
+                  <Label>Улсын дугаар *</Label>
+                  <Input
+                    placeholder="8332УБА"
+                    value={plateNumber}
+                    onChange={e => {
+                      let val = e.target.value;
+                      const digits = val.slice(0, 4).replace(/\D/g, "");
+                      const letters = val.slice(4).replace(/[^А-ЯӨҮЁа-яөүё]/g, "").toUpperCase().slice(0, 3);
+                      setPlateNumber(digits + letters);
+                    }}
+                    className="uppercase"
+                    maxLength={7}
+                  />
+                  <p className="text-[11px] text-muted-foreground">4 тоо + 3 кирилл үсэг</p>
+                </div>
+
+                {/* License Number */}
+                <div className="space-y-2">
+                  <Label>Жолоочийн үнэмлэхийн дугаар *</Label>
+                  <Input
+                    placeholder="00000000"
+                    value={licenseNumber}
+                    onChange={e => {
+                      const val = e.target.value.replace(/\D/g, "").slice(0, 10);
+                      setLicenseNumber(val);
+                    }}
+                    inputMode="numeric"
+                  />
+                </div>
+
+                {/* Email */}
+                <div className="space-y-2 sm:col-span-2">
+                  <Label>Имэйл</Label>
+                  <Input type="email" placeholder="example@mail.com" value={driverEmail} onChange={e => setDriverEmail(e.target.value)} />
+                </div>
+              </div>
+
+              {/* Photo uploads */}
+              <h3 className="font-medium text-sm mb-3">Зургууд байршуулах</h3>
+              <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-3">
+                {PHOTO_LABELS.map(({ key, label }) => {
+                  const preview = photos[key] ? URL.createObjectURL(photos[key]!) : photoUrls[key];
+                  return (
+                    <div key={key} className="space-y-1">
+                      <div
+                        className="relative border-2 border-dashed border-border rounded-xl overflow-hidden hover:border-primary/50 transition-colors cursor-pointer group aspect-[4/3]"
+                        onClick={() => fileInputRefs.current[key]?.click()}
+                      >
+                        <input
+                          ref={el => { fileInputRefs.current[key] = el; }}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={e => handlePhotoSelect(key, e.target.files?.[0] || null)}
+                        />
+                        {preview ? (
+                          <>
+                            <img src={preview} alt={label} className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <Upload className="h-5 w-5 text-white" />
+                            </div>
+                            <button
+                              className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removePhoto(key);
+                              }}
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center h-full p-3">
+                            <Image className="h-5 w-5 text-muted-foreground mb-1 group-hover:text-primary transition-colors" />
+                            <p className="text-[10px] text-muted-foreground text-center leading-tight">{label}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <Button className="mt-5" onClick={handleSubmitVerification} disabled={uploadingDocs}>
+                {uploadingDocs ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
+                Илгээх
+              </Button>
+            </div>
+          </>
+        )}
+
+        {/* STATE 3: Verified - Show trip creation */}
+        {isVerified && (
           <div className="glass-card-elevated rounded-2xl p-5 mb-6 border-l-4 border-success flex items-start gap-3 animate-fade-in">
             <CheckCircle className="h-5 w-5 text-success mt-0.5" />
             <div>
@@ -273,150 +423,15 @@ const DriverDashboard: React.FC = () => {
           </div>
         )}
 
-        {/* Verification Documents Form */}
-        {!isVerified && (
-          <div className="glass-card-elevated rounded-2xl p-6 mb-6 animate-fade-in" style={{ animationDelay: "100ms" }}>
-            <h2 className="font-heading font-semibold text-lg mb-4 flex items-center gap-2">
-              <Shield className="h-5 w-5 text-primary" /> {t("verification")}
-            </h2>
-
-            {/* Document info fields */}
-            <div className="grid sm:grid-cols-2 gap-4 mb-6">
-              {/* Vehicle Brand */}
-              <div className="space-y-2">
-                <Label>Машины брэнд *</Label>
-                <Select value={selectedBrand} onValueChange={(val) => { setSelectedBrand(val); setSelectedModel(""); }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Брэнд сонгох" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-60">
-                    {Object.keys(CAR_BRANDS).map(brand => (
-                      <SelectItem key={brand} value={brand}>{brand}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Vehicle Model */}
-              <div className="space-y-2">
-                <Label>Машины модел *</Label>
-                <Select value={selectedModel} onValueChange={setSelectedModel} disabled={!selectedBrand}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={selectedBrand ? "Модел сонгох" : "Эхлээд брэнд сонгоно уу"} />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-60">
-                    {selectedBrand && CAR_BRANDS[selectedBrand]?.map(model => (
-                      <SelectItem key={model} value={model}>{model}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* License Plate - single input: 4 digits + 3 cyrillic letters */}
-              <div className="space-y-2">
-                <Label>Улсын дугаар *</Label>
-                <Input
-                  placeholder="8332УБА"
-                  value={plateNumber}
-                  onChange={e => {
-                    let val = e.target.value;
-                    const digits = val.slice(0, 4).replace(/\D/g, "");
-                    const letters = val.slice(4).replace(/[^А-ЯӨҮЁа-яөүё]/g, "").toUpperCase().slice(0, 3);
-                    setPlateNumber(digits + letters);
-                  }}
-                  className="uppercase"
-                  maxLength={7}
-                />
-                <p className="text-[11px] text-muted-foreground">4 тоо + 3 кирилл үсэг</p>
-              </div>
-
-              {/* License Number */}
-              <div className="space-y-2">
-                <Label>Жолоочийн үнэмлэхийн дугаар *</Label>
-                <Input
-                  placeholder="00000000"
-                  value={licenseNumber}
-                  onChange={e => {
-                    const val = e.target.value.replace(/\D/g, "").slice(0, 10);
-                    setLicenseNumber(val);
-                  }}
-                  inputMode="numeric"
-                />
-              </div>
-
-              {/* Email */}
-              <div className="space-y-2 sm:col-span-2">
-                <Label>Имэйл</Label>
-                <Input type="email" placeholder="example@mail.com" value={driverEmail} onChange={e => setDriverEmail(e.target.value)} />
-              </div>
-            </div>
-
-            {/* Photo uploads - one by one */}
-            <h3 className="font-medium text-sm mb-3">Зургууд байршуулах</h3>
-            <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-3">
-              {PHOTO_LABELS.map(({ key, label }) => {
-                const preview = photos[key] ? URL.createObjectURL(photos[key]!) : photoUrls[key];
-                return (
-                  <div key={key} className="space-y-1">
-                    <div
-                      className="relative border-2 border-dashed border-border rounded-xl overflow-hidden hover:border-primary/50 transition-colors cursor-pointer group aspect-[4/3]"
-                      onClick={() => fileInputRefs.current[key]?.click()}
-                    >
-                      <input
-                        ref={el => { fileInputRefs.current[key] = el; }}
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={e => handlePhotoSelect(key, e.target.files?.[0] || null)}
-                      />
-                      {preview ? (
-                        <>
-                          <img src={preview} alt={label} className="w-full h-full object-cover" />
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <Upload className="h-5 w-5 text-white" />
-                          </div>
-                          <button
-                            className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removePhoto(key);
-                            }}
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center h-full p-3">
-                          <Image className="h-5 w-5 text-muted-foreground mb-1 group-hover:text-primary transition-colors" />
-                          <p className="text-[10px] text-muted-foreground text-center leading-tight">{label}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <Button className="mt-5" onClick={handleSubmitVerification} disabled={uploadingDocs}>
-              {uploadingDocs ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
-              Илгээх
-            </Button>
-          </div>
-        )}
-
-        {/* Create Trip */}
-        <div className="flex items-center justify-between mb-4 animate-fade-in" style={{ animationDelay: "200ms" }}>
-          <h2 className="font-heading font-semibold text-xl">Миний аялалууд</h2>
-          {isVerified ? (
+        {/* Trip section - only visible when verified */}
+        {isVerified && (
+          <div className="flex items-center justify-between mb-4 animate-fade-in" style={{ animationDelay: "200ms" }}>
+            <h2 className="font-heading font-semibold text-xl">Миний аялалууд</h2>
             <Button size="sm" onClick={() => setShowCreateTrip(!showCreateTrip)} className="hover-scale">
               <Plus className="mr-2 h-4 w-4" /> Аялал үүсгэх
             </Button>
-          ) : (
-            <Button size="sm" disabled className="opacity-50">
-              <Lock className="mr-2 h-4 w-4" /> Баталгаажсаны дараа
-            </Button>
-          )}
-        </div>
+          </div>
+        )}
 
         {showCreateTrip && isVerified && (
           <div className="glass-card-elevated rounded-2xl p-6 mb-6 animate-fade-in">
