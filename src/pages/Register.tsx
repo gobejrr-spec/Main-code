@@ -170,7 +170,7 @@ const Register: React.FC = () => {
           driverLastName: form.lastName,
           driverPhone: form.phone,
           driverEmail: form.email,
-          verificationStatus: "pending",
+          verificationStatus: "none",
           createdAt: serverTimestamp(),
         });
       }
