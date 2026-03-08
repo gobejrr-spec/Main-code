@@ -4,7 +4,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { doc, getDoc, addDoc, collection, serverTimestamp, query, where, getCountFromServer } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { MapPin, Calendar, Clock, Users, User, Car, ArrowLeft, Shield, Loader2, Phone, CreditCard } from "lucide-react";
+import { MapPin, Calendar, Clock, Users, User, Car, ArrowLeft, Shield, Loader2, Phone, CreditCard, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -22,12 +22,20 @@ interface TripData {
   status: string;
 }
 
+interface DriverInfo {
+  vehicleType?: string;
+  vehiclePlate?: string;
+  licenseNumber?: string;
+  driverLastName?: string;
+}
+
 const TripDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { t } = useLanguage();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [trip, setTrip] = useState<TripData | null>(null);
+  const [driverInfo, setDriverInfo] = useState<DriverInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [bookedSeats, setBookedSeats] = useState(0);
   const [booking, setBooking] = useState(false);
@@ -42,7 +50,16 @@ const TripDetails: React.FC = () => {
           const data = docSnap.data() as TripData;
           if (data.status === "approved") {
             setTrip(data);
-            // Try to get booked seats count, handle permission errors gracefully
+            // Fetch driver details from drivers collection
+            try {
+              const driverDoc = await getDoc(doc(db, "drivers", data.driverId));
+              if (driverDoc.exists()) {
+                setDriverInfo(driverDoc.data() as DriverInfo);
+              }
+            } catch (dErr) {
+              console.warn("Could not fetch driver info:", dErr);
+            }
+            // Try to get booked seats count
             try {
               const bookingsSnap = await getCountFromServer(
                 query(collection(db, "bookings"), where("tripId", "==", id), where("status", "==", "confirmed"))
