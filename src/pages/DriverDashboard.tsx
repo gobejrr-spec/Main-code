@@ -78,7 +78,8 @@ const DriverDashboard: React.FC = () => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [verificationStatus, setVerificationStatus] = useState<string>("pending");
+  const [verificationStatus, setVerificationStatus] = useState<string>("none");
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
   // Trip form state
   const [tripFrom, setTripFrom] = useState("");
@@ -112,7 +113,8 @@ const DriverDashboard: React.FC = () => {
         const driverDoc = await getDoc(doc(db, "drivers", user.uid));
         if (driverDoc.exists()) {
           const data = driverDoc.data();
-          setVerificationStatus(data.verificationStatus || "pending");
+          setVerificationStatus(data.verificationStatus || "none");
+          setHasSubmitted(true);
           setVehiclePlate(data.vehiclePlate || "");
           setLicenseNumber(data.licenseNumber || "");
           setDriverEmail(data.email || "");
@@ -143,7 +145,8 @@ const DriverDashboard: React.FC = () => {
     const unsubscribe = onSnapshot(doc(db, "drivers", user.uid), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        const newStatus = data.verificationStatus || "pending";
+        const newStatus = data.verificationStatus || "none";
+        setHasSubmitted(true);
         setVerificationStatus(newStatus);
         if (data.vehiclePlate) setVehiclePlate(data.vehiclePlate);
         if (data.licenseNumber) setLicenseNumber(data.licenseNumber);
@@ -161,7 +164,7 @@ const DriverDashboard: React.FC = () => {
   }, [user]);
 
   const isVerified = verificationStatus === "approved";
-  const isPending = verificationStatus === "pending" && (Object.keys(photoUrls).length > 0 || (selectedBrand && selectedModel) || licenseNumber);
+  const isPending = verificationStatus === "pending" && hasSubmitted;
   const isRejected = verificationStatus === "rejected";
   const needsSubmission = !isVerified && !isPending;
   const vehicleType = selectedBrand && selectedModel ? `${selectedBrand} ${selectedModel}` : "";
@@ -214,6 +217,7 @@ const DriverDashboard: React.FC = () => {
       setPhotoUrls(uploadedPhotos);
       setPhotos({});
       setVerificationStatus("pending");
+      setHasSubmitted(true);
       toast.success("Бичиг баримтууд амжилттай илгээгдлээ! Админ шалгаж баталгаажуулна.");
     } catch (err: any) {
       console.error(err);
@@ -285,9 +289,14 @@ const DriverDashboard: React.FC = () => {
             <p className="text-muted-foreground max-w-md mx-auto mb-4">
               Таны бичиг баримтууд амжилттай илгээгдсэн. Админ шалгаж баталгаажуулсны дараа та аялал оруулах боломжтой болно.
             </p>
-            <div className="inline-flex items-center gap-2 bg-warning/10 text-warning text-sm font-medium px-4 py-2 rounded-full">
+            <div className="inline-flex items-center gap-2 bg-warning/10 text-warning text-sm font-medium px-4 py-2 rounded-full mb-4">
               <Loader2 className="h-4 w-4 animate-spin" />
               Хянагдаж байна...
+            </div>
+            <div>
+              <Button variant="outline" size="sm" onClick={() => setHasSubmitted(false)}>
+                Дахин засах
+              </Button>
             </div>
           </div>
         )}
@@ -423,7 +432,11 @@ const DriverDashboard: React.FC = () => {
                 })}
               </div>
 
-              <Button className="mt-5" onClick={handleSubmitVerification} disabled={uploadingDocs}>
+              <Button
+                className="mt-5"
+                onClick={handleSubmitVerification}
+                disabled={uploadingDocs || !selectedBrand || !selectedModel || plateNumber.length < 7 || !licenseNumber}
+              >
                 {uploadingDocs ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
                 Илгээх
               </Button>
