@@ -8,9 +8,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import {
   Users, Car, MapPin, CheckCircle, Shield, AlertTriangle, MessageSquare,
   Loader2, Trash2, Eye, Clock, UserPlus, XCircle, Ban, RefreshCw,
-  Phone, Mail, FileText, ChevronDown, ChevronUp, Image, Settings, Save, CreditCard, Compass
+  Phone, Mail, FileText, ChevronDown, ChevronUp, Image, Settings, Save, CreditCard
 } from "lucide-react";
-import AdminAimagTab from "@/components/AdminAimagTab";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -88,7 +87,7 @@ const AdminDashboard: React.FC = () => {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [allBookings, setAllBookings] = useState<BookingRecord[]>([]);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"users" | "drivers" | "alltrips" | "pendingtrips" | "complaints" | "settings" | "bookings" | "aimags">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "drivers" | "alltrips" | "pendingtrips" | "complaints" | "settings" | "bookings">("users");
   const [expandedDriver, setExpandedDriver] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; type: "user" | "driver" } | null>(null);
   const [photoModal, setPhotoModal] = useState<{ url: string; label: string } | null>(null);
@@ -355,7 +354,6 @@ const AdminDashboard: React.FC = () => {
     { key: "pendingtrips" as const, label: t("pendingTripsTab"), icon: Clock, count: pendingTrips.length },
     { key: "alltrips" as const, label: t("allTripsTab"), icon: MapPin, count: allTrips.length },
     { key: "complaints" as const, label: t("complaintsTab"), icon: MessageSquare, count: complaints.length },
-    { key: "aimags" as const, label: t("aimagsTab"), icon: Compass, count: 0 },
     { key: "settings" as const, label: t("settingsTab"), icon: Settings, count: 0 },
   ];
 
@@ -850,8 +848,7 @@ const AdminDashboard: React.FC = () => {
             </div>
           )}
 
-          {/* AIMAGS TAB */}
-          {activeTab === "aimags" && <AdminAimagTab />}
+          {/* SETTINGS TAB */}
 
           {/* SETTINGS TAB */}
           {activeTab === "settings" && (
