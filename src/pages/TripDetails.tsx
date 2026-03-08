@@ -210,7 +210,9 @@ const TripDetails: React.FC = () => {
                   <User className="h-7 w-7 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <p className="font-heading font-semibold text-lg">{trip.driverName}</p>
+                  <p className="font-heading font-semibold text-lg">
+                    {driverInfo?.driverLastName ? `${driverInfo.driverLastName} ` : ""}{trip.driverName}
+                  </p>
                   <div className="flex items-center gap-1 text-xs text-success mt-1">
                     <Shield className="h-3 w-3" /> Баталгаажсан жолооч
                   </div>
@@ -228,7 +230,21 @@ const TripDetails: React.FC = () => {
                   <Car className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-xs text-muted-foreground">Машин</p>
-                    <p className="text-sm font-medium">{trip.carType || "—"}</p>
+                    <p className="text-sm font-medium">{driverInfo?.vehicleType || trip.carType || "—"}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/50">
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Улсын дугаар</p>
+                    <p className="text-sm font-medium">{driverInfo?.vehiclePlate || "—"}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/50">
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Жолоочийн үнэмлэх</p>
+                    <p className="text-sm font-medium">{driverInfo?.licenseNumber || "—"}</p>
                   </div>
                 </div>
               </div>
