@@ -34,11 +34,16 @@ const ChatBox: React.FC<ChatBoxProps> = ({ bookingId, tripId, otherUserName }) =
     if (!bookingId) return;
     const q = query(
       collection(db, "messages"),
-      where("bookingId", "==", bookingId),
-      orderBy("createdAt", "asc")
+      where("bookingId", "==", bookingId)
     );
     const unsub = onSnapshot(q, (snap) => {
-      setMessages(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Message)));
+      const msgs = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Message));
+      msgs.sort((a, b) => {
+        const ta = a.createdAt?.toMillis() ?? 0;
+        const tb = b.createdAt?.toMillis() ?? 0;
+        return ta - tb;
+      });
+      setMessages(msgs);
       setLoading(false);
     }, (err) => {
       console.error("Chat listener error:", err);
