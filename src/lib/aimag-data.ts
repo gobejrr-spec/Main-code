@@ -22,7 +22,7 @@ export const AIMAG_DATA: AimagInfo[] = [
     description: "Монголын нийслэл хот. Орчин үеийн амьдрал, соёл урлаг, бизнесийн төв.",
     highlights: ["Чингис хааны талбай", "Гандантэгчинлэн хийд", "Зайсан толгой", "Богд хааны ордон"],
     image: "🏙️",
-    photoUrl: "https://images.unsplash.com/photo-1602149451398-453be1b39498?w=800&q=80",
+    photoUrl: "https://images.unsplash.com/photo-1584592740039-cddf0671f3d4?w=800&q=80",
     population: "1,500,000+",
     area: "4,704 км²",
     attractions: [
