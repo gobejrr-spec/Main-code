@@ -339,6 +339,13 @@ export const translations = {
     back: "Back",
     next: "Next",
     noResults: "No results found",
+    aimagManagement: "Province Management",
+    aimagName: "Name",
+    aimagDescription: "Description",
+    aimagPhoto: "Photo URL",
+    addAttraction: "Add attraction",
+    customized: "Edited",
+    aimagsTab: "Provinces",
   },
   mn: {
     // Nav
@@ -678,6 +685,13 @@ export const translations = {
     back: "Буцах",
     next: "Дараа",
     noResults: "Үр дүн олдсонгүй",
+    aimagManagement: "Аймгийн удирдлага",
+    aimagName: "Нэр",
+    aimagDescription: "Тайлбар",
+    aimagPhoto: "Зургийн URL",
+    addAttraction: "Газар нэмэх",
+    customized: "Засагдсан",
+    aimagsTab: "Аймгууд",
   },
 } as const;
 
