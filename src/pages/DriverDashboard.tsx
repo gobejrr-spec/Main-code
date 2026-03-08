@@ -352,12 +352,6 @@ const DriverDashboard: React.FC = () => {
                     inputMode="numeric"
                   />
                 </div>
-
-                {/* Email */}
-                <div className="space-y-2 sm:col-span-2">
-                  <Label>Имэйл</Label>
-                  <Input type="email" placeholder="example@mail.com" value={driverEmail} onChange={e => setDriverEmail(e.target.value)} />
-                </div>
               </div>
 
               {/* Photo uploads */}
