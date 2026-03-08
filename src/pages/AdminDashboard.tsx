@@ -850,6 +850,9 @@ const AdminDashboard: React.FC = () => {
             </div>
           )}
 
+          {/* AIMAGS TAB */}
+          {activeTab === "aimags" && <AimagManager />}
+
           {/* SETTINGS TAB */}
 
           {/* SETTINGS TAB */}
