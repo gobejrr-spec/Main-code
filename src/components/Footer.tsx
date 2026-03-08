@@ -44,9 +44,6 @@ const Footer: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="border-t border-white/10 pt-8 text-center">
-          <p className="text-xs text-white/30">© 2026 Rural. Бүх эрх хуулиар хамгаалагдсан.</p>
-        </div>
       </div>
     </footer>
   );
