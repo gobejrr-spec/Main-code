@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, getDoc, serverTimestamp, increment } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -89,6 +89,19 @@ const Register: React.FC = () => {
           verificationStatus: "none",
           createdAt: serverTimestamp(),
         });
+      }
+
+      // Update public stats
+      try {
+        const statsRef = doc(db, "settings", "stats");
+        const statsSnap = await getDoc(statsRef);
+        const current = statsSnap.exists() ? statsSnap.data() : { users: 0, drivers: 0 };
+        await setDoc(statsRef, {
+          users: (current.users || 0) + 1,
+          drivers: form.role === "driver" ? (current.drivers || 0) + 1 : (current.drivers || 0),
+        });
+      } catch (e) {
+        console.warn("Stats update error:", e);
       }
 
       toast.success(t("registerSuccess"));

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-landscape.jpg";
 import heroNightImage from "@/assets/hero-night.jpg";
 import { useTheme } from "@/components/ThemeProvider";
-import { collection, getCountFromServer } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 const Landing: React.FC = () => {
@@ -31,11 +31,11 @@ const Landing: React.FC = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [usersSnap, driversSnap] = await Promise.all([
-          getCountFromServer(collection(db, "users")),
-          getCountFromServer(collection(db, "drivers")),
-        ]);
-        setStats({ users: usersSnap.data().count, drivers: driversSnap.data().count });
+        const statsDoc = await getDoc(doc(db, "settings", "stats"));
+        if (statsDoc.exists()) {
+          const data = statsDoc.data();
+          setStats({ users: data.users || 0, drivers: data.drivers || 0 });
+        }
       } catch (err) {
         console.error("Stats fetch error:", err);
       } finally {
