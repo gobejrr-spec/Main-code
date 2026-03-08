@@ -4,7 +4,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { doc, getDoc, addDoc, collection, serverTimestamp, query, where, getCountFromServer } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { MapPin, Calendar, Clock, Users, User, Car, ArrowLeft, Shield, Loader2, Phone, CreditCard, FileText } from "lucide-react";
+import { MapPin, Calendar, Clock, Users, User, Car, ArrowLeft, Shield, Loader2, Phone, CreditCard, FileText, Navigation } from "lucide-react";
+import { getDistanceKm } from "@/lib/distance";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -135,6 +136,8 @@ const TripDetails: React.FC = () => {
     );
   }
 
+  const distanceKm = trip ? getDistanceKm(trip.from, trip.to) : null;
+
   return (
     <div className="min-h-screen bg-background pt-20 pb-10">
       {/* Top gradient accent */}
@@ -167,6 +170,17 @@ const TripDetails: React.FC = () => {
                 </div>
               </div>
             </div>
+            {distanceKm !== null && (
+              <div className="mt-5 pt-5 border-t border-border/50 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Navigation className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium">Ойролцоо зай</p>
+                  <p className="font-heading font-bold text-lg">{distanceKm} км</p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Details Grid */}
