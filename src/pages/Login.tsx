@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +57,21 @@ const Login: React.FC = () => {
                 {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
+            <button
+              type="button"
+              onClick={async () => {
+                if (!email) { toast.error(t("enterEmailFirst")); return; }
+                try {
+                  await sendPasswordResetEmail(auth, email);
+                  toast.success(t("resetEmailSent"));
+                } catch {
+                  toast.error(t("resetEmailError"));
+                }
+              }}
+              className="text-xs text-primary hover:underline self-end"
+            >
+              {t("forgotPassword")}
+            </button>
           </div>
           <Button type="submit" className="w-full h-12 text-base glow-primary" disabled={loading}>
             {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ArrowRight className="mr-2 h-4 w-4" />}
