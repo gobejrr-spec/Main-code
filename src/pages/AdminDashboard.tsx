@@ -111,14 +111,14 @@ const AdminDashboard: React.FC = () => {
           userId: data.userId,
           verificationStatus: data.verificationStatus || "pending",
           userName: userData?.name || data.driverName || "",
-          userLastName: userData?.lastName || "",
+          userLastName: userData?.lastName || data.driverLastName || "",
           userPhone: userData?.phone || data.driverPhone || "",
-          userEmail: userData?.email || "",
+          userEmail: userData?.email || data.driverEmail || "",
           userPlateNo: userData?.plateNo || "",
           vehicleType: data.vehicleType || data.carType || "",
-          vehiclePlate: data.vehiclePlate || data.plateNumber || "",
+          vehiclePlate: data.vehiclePlate || data.plateNumber || userData?.plateNo || "",
           licenseNumber: data.licenseNumber || "",
-          email: data.email || "",
+          email: data.email || data.driverEmail || userData?.email || "",
           photos: data.photos || {},
         };
       });

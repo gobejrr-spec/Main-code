@@ -169,7 +169,13 @@ const Register: React.FC = () => {
       if (form.role === "driver") {
         await setDoc(doc(db, "drivers", cred.user.uid), {
           userId: cred.user.uid,
+          driverName: form.name,
+          driverLastName: form.lastName,
+          driverPhone: form.phone,
+          driverEmail: form.email,
+          vehiclePlate: form.plateNo,
           verificationStatus: "pending",
+          createdAt: serverTimestamp(),
         });
       }
 
