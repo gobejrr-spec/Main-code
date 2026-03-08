@@ -33,6 +33,7 @@ interface DriverRecord {
   userPhone?: string;
   userEmail?: string;
   userPlateNo?: string;
+  userRegisterNo?: string;
   vehicleType?: string;
   vehiclePlate?: string;
   licenseNumber?: string;
@@ -123,6 +124,7 @@ const AdminDashboard: React.FC = () => {
           userPhone: userData?.phone || data.driverPhone || "",
           userEmail: userData?.email || data.driverEmail || "",
           userPlateNo: userData?.plateNo || "",
+          userRegisterNo: userData?.registerNo || data.registerNo || "",
           vehicleType: data.vehicleType || data.carType || "",
           vehiclePlate: data.vehiclePlate || data.plateNumber || userData?.plateNo || "",
           licenseNumber: data.licenseNumber || "",
@@ -528,13 +530,18 @@ const AdminDashboard: React.FC = () => {
                             </div>
                             <div className="flex items-center gap-2 text-sm">
                               <FileText className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-muted-foreground">Регистрийн дугаар:</span>
+                              <span className="font-medium">{d.userRegisterNo || "—"}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <FileText className="h-4 w-4 text-muted-foreground" />
                               <span className="text-muted-foreground">Жолоочийн үнэмлэх:</span>
                               <span className="font-medium">{d.licenseNumber || "—"}</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm">
                               <Mail className="h-4 w-4 text-muted-foreground" />
                               <span className="text-muted-foreground">Имэйл:</span>
-                              <span className="font-medium">{d.email || d.userEmail || "—"}</span>
+                              <span className="font-medium">{d.userEmail || d.email || "—"}</span>
                             </div>
                           </div>
 
