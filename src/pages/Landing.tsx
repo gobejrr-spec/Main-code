@@ -5,6 +5,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Search, MapPin, Shield, ArrowRight, Car, Users, Clock, Star, Sparkles, Loader2, CheckCircle, Phone, CreditCard, Compass, Route, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-landscape.jpg";
+import heroNightImage from "@/assets/hero-night.jpg";
+import { useTheme } from "@/components/ThemeProvider";
 import { collection, getCountFromServer } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
