@@ -42,7 +42,9 @@ const Navbar: React.FC = () => {
         <Link to="/" className={`flex items-center gap-2 font-heading text-xl font-bold ${
           isLanding ? "text-primary-foreground" : "text-primary"
         }`}>
-          <img src={ruralLogo} alt="Rural Transport" className="w-10 h-10 object-contain dark:drop-shadow-[0_0_1px_hsl(var(--primary))] dark:brightness-110 dark:saturate-150" />
+          <span className="w-10 h-10 rounded-lg overflow-hidden dark:bg-primary/20 dark:p-1 flex items-center justify-center">
+            <img src={ruralLogo} alt="Rural Transport" className="w-full h-full object-contain dark:brightness-150 dark:contrast-125" />
+          </span>
           Rural Transport
         </Link>
 
