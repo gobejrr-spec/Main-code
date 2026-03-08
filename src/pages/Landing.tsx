@@ -13,6 +13,7 @@ import { db } from "@/lib/firebase";
 const Landing: React.FC = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
+  const { theme } = useTheme();
   const [stats, setStats] = useState({ users: 0, drivers: 0 });
   const [statsLoaded, setStatsLoaded] = useState(false);
 
