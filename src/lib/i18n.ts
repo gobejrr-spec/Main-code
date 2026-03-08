@@ -346,6 +346,12 @@ export const translations = {
     addAttraction: "Add attraction",
     customized: "Edited",
     aimagsTab: "Provinces",
+    noMessages: "No messages yet",
+    typeMessage: "Type a message...",
+    chatWithDriver: "Chat with Driver",
+    chatWithPassenger: "Chat with Passenger",
+    chatAvailable: "Chat available after booking confirmation",
+    openChat: "Chat",
   },
   mn: {
     // Nav
@@ -692,6 +698,12 @@ export const translations = {
     addAttraction: "Газар нэмэх",
     customized: "Засагдсан",
     aimagsTab: "Аймгууд",
+    noMessages: "Мессеж байхгүй байна",
+    typeMessage: "Мессеж бичих...",
+    chatWithDriver: "Жолоочтой чатлах",
+    chatWithPassenger: "Зорчигчтой чатлах",
+    chatAvailable: "Захиалга баталгаажсны дараа чат нээгдэнэ",
+    openChat: "Чат",
   },
 } as const;
 

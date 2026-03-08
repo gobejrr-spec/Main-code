@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { MapPin, Calendar, Clock, MessageSquare, Loader2, Send, Search } from "lucide-react";
@@ -129,13 +129,23 @@ const PassengerDashboard: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      {b.price && <p className="font-heading font-bold text-primary">{b.price.toLocaleString()}₮</p>}
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${
-                        b.status === "confirmed" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"
-                      }`}>
-                        {b.status === "confirmed" ? t("confirmed") : b.status}
-                      </span>
+                    <div className="flex items-center gap-2">
+                      {b.status === "confirmed" && (
+                        <Link to={`/chat/${b.id}`}>
+                          <Button size="sm" variant="outline" className="rounded-xl gap-1.5">
+                            <MessageSquare className="h-3.5 w-3.5" />
+                            {t("openChat")}
+                          </Button>
+                        </Link>
+                      )}
+                      <div className="text-right">
+                        {b.price && <p className="font-heading font-bold text-primary">{b.price.toLocaleString()}₮</p>}
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${
+                          b.status === "confirmed" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"
+                        }`}>
+                          {b.status === "confirmed" ? t("confirmed") : b.status}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 ))}
