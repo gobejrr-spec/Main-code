@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Search, MapPin, Shield, ArrowRight, Car, Users, Clock, Star, Sparkles, Loader2, CheckCircle, Phone, CreditCard, Compass, Route, Zap } from "lucide-react";
