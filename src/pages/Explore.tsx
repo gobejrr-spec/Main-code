@@ -26,15 +26,22 @@ const Explore: React.FC = () => {
           </button>
 
           <div className="animate-fade-in">
-            <div className="glass-card-elevated rounded-2xl p-8">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="text-5xl">{selected.image}</div>
-                <div>
-                  <h1 className="font-heading text-3xl font-bold">{selected.name}</h1>
-                  <p className="text-muted-foreground mt-1">{selected.description}</p>
-                </div>
+            {/* Hero image */}
+            <div className="relative rounded-2xl overflow-hidden mb-6 aspect-[16/7]">
+              <img
+                src={selected.photoUrl}
+                alt={selected.name}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 to-transparent" />
+              <div className="absolute bottom-0 left-0 p-6">
+                <h1 className="font-heading text-3xl md:text-4xl font-bold text-primary-foreground">{selected.name}</h1>
+                <p className="text-primary-foreground/80 mt-1 max-w-lg">{selected.description}</p>
               </div>
+            </div>
 
+            <div className="glass-card-elevated rounded-2xl p-8">
               <div className="grid grid-cols-2 gap-3 mb-6">
                 <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
                   <Users className="h-5 w-5 text-primary" />
@@ -69,7 +76,7 @@ const Explore: React.FC = () => {
 
               <div className="mt-8 pt-6 border-t border-border">
                 <Button asChild className="w-full glow-primary">
-                  <Link to={`/trips?from=${encodeURIComponent(selected.name)}`}>
+                  <Link to={`/trips?to=${encodeURIComponent(selected.name)}`}>
                     <MapPin className="mr-2 h-4 w-4" />
                     {selected.name} руу аялал хайх
                   </Link>
@@ -117,25 +124,37 @@ const Explore: React.FC = () => {
             <button
               key={aimag.name}
               onClick={() => setSelected(aimag)}
-              className="glass-card-elevated rounded-2xl p-5 text-left hover-lift group transition-all duration-300"
+              className="glass-card-elevated rounded-2xl overflow-hidden text-left hover-lift group transition-all duration-300"
             >
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-3xl">{aimag.image}</span>
-                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+              <div className="relative h-36 overflow-hidden">
+                <img
+                  src={aimag.photoUrl}
+                  alt={aimag.name}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-foreground/50 to-transparent" />
+                <div className="absolute bottom-3 left-4 right-4">
+                  <h3 className="font-heading font-semibold text-lg text-primary-foreground">
+                    {aimag.name}
+                  </h3>
+                </div>
+                <div className="absolute top-3 right-3">
+                  <ChevronRight className="h-5 w-5 text-primary-foreground/70 group-hover:text-primary-foreground group-hover:translate-x-1 transition-all" />
+                </div>
               </div>
-              <h3 className="font-heading font-semibold text-lg mb-1 group-hover:text-primary transition-colors">
-                {aimag.name}
-              </h3>
-              <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                {aimag.description}
-              </p>
-              <div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Users className="h-3 w-3" /> {aimag.population}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Star className="h-3 w-3" /> {aimag.highlights.length} газар
-                </span>
+              <div className="p-4">
+                <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                  {aimag.description}
+                </p>
+                <div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <Users className="h-3 w-3" /> {aimag.population}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Star className="h-3 w-3" /> {aimag.highlights.length} газар
+                  </span>
+                </div>
               </div>
             </button>
           ))}

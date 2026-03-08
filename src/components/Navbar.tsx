@@ -40,8 +40,8 @@ const Navbar: React.FC = () => {
         <Link to="/" className={`flex items-center gap-2 font-heading text-xl font-bold ${
           isLanding ? "text-primary-foreground" : "text-primary"
         }`}>
-          <img src={ruralLogo} alt="Rural" className="w-8 h-8 object-contain" />
-          Rural
+          <img src={ruralLogo} alt="Rural Transport" className="w-8 h-8 object-contain" />
+          Rural Transport
         </Link>
 
         {/* Desktop */}
@@ -72,7 +72,7 @@ const Navbar: React.FC = () => {
                   variant="ghost"
                   size="sm"
                   onClick={() => navigate("/admin")}
-                  className={isLanding ? "text-primary-foreground hover:bg-primary-foreground/10" : ""}
+                  className={isLanding ? "text-success hover:bg-success/10" : "text-success hover:bg-success/10"}
                 >
                   <Shield className="mr-1.5 h-4 w-4" />
                   Admin
@@ -144,9 +144,9 @@ const Navbar: React.FC = () => {
             {user ? (
               <>
                 {profile?.role === "admin" && (
-                  <Link to="/admin" className="flex items-center gap-2 text-sm font-medium text-primary py-2" onClick={() => setMobileOpen(false)}>
-                    <Shield className="h-4 w-4" /> Admin Panel
-                  </Link>
+                   <Link to="/admin" className="flex items-center gap-2 text-sm font-medium text-success py-2" onClick={() => setMobileOpen(false)}>
+                     <Shield className="h-4 w-4" /> Admin Panel
+                   </Link>
                 )}
                 <Link to={getDashboardPath()} className="block text-sm font-medium py-2" onClick={() => setMobileOpen(false)}>{t("dashboard")}</Link>
                 <button onClick={() => { logout(); setMobileOpen(false); }} className="text-sm text-destructive py-2">{t("logout")}</button>
