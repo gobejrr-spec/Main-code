@@ -366,7 +366,7 @@ export const translations = {
     myTripsNav: "Миний аялалууд",
 
     // Landing
-    heroTitle: "Монголоор аялаарай",
+    heroTitle: "Монголоор|аялаарай",
     heroSubtitle: "Хот, хөдөө хоорондын найдвартай жолоочтой холбогдоорой",
     searchNow: "Аялал хайх",
     howItWorks: "Хэрхэн ажилладаг вэ?",
