@@ -347,7 +347,6 @@ export const translations = {
     customized: "Edited",
     aimagsTab: "Provinces",
   },
-  },
   mn: {
     // Nav
     home: "Нүүр",
