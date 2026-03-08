@@ -323,7 +323,7 @@ const Trips: React.FC = () => {
               <LocationSelect value={searchTo} onChange={setSearchTo} placeholder={t("to")} iconColor="text-accent" />
               <div className="relative min-w-0">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input type="date" className="pl-9 h-11 w-full" value={searchDate} onChange={(e) => setSearchDate(e.target.value)} />
+                <Input type="date" className="pl-9 h-11 w-full min-h-[44px]" value={searchDate} onChange={(e) => setSearchDate(e.target.value)} />
               </div>
               <Button className="w-full h-11 glow-primary">
                 <Search className="mr-2 h-4 w-4" />

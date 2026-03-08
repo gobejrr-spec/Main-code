@@ -520,7 +520,7 @@ const DriverDashboard: React.FC = () => {
               </div>
               <div className="space-y-2 min-w-0">
                 <Label>{t("timeInput")}</Label>
-                <Input type="time" className="w-full" value={tripTime} onChange={(e) => setTripTime(e.target.value)} />
+                <Input type="time" className="w-full h-10" value={tripTime} onChange={(e) => setTripTime(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label>{t("seatCount")}</Label>
