@@ -82,12 +82,8 @@ const Register: React.FC = () => {
       toast.error("Бүх талбарыг бөглөнө үү");
       return;
     }
-    if (form.role === "driver" && (!form.lastName || !form.plateNo)) {
-      toast.error("Овог болон улсын дугаар бөглөнө үү");
-      return;
-    }
-    if (form.role === "driver" && !/^\d{4}[А-ЯӨҮЁа-яөүё]{3}$/.test(form.plateNo)) {
-      toast.error("Улсын дугаар буруу байна (жишээ: 8332УБА)");
+    if (form.role === "driver" && !form.lastName) {
+      toast.error("Овог бөглөнө үү");
       return;
     }
     if (form.password !== form.confirmPassword) {
