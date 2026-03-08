@@ -514,7 +514,7 @@ const AdminDashboard: React.FC = () => {
                             <div className="flex items-center gap-2 text-sm">
                               <Car className="h-4 w-4 text-muted-foreground" />
                               <span className="text-muted-foreground">Улсын дугаар:</span>
-                              <span className="font-medium">{d.vehiclePlate || "—"}</span>
+                              <span className="font-medium">{d.vehiclePlate || d.userPlateNo || "—"}</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm">
                               <FileText className="h-4 w-4 text-muted-foreground" />
@@ -526,13 +526,6 @@ const AdminDashboard: React.FC = () => {
                               <span className="text-muted-foreground">Имэйл:</span>
                               <span className="font-medium">{d.email || d.userEmail || "—"}</span>
                             </div>
-                            {d.userPlateNo && (
-                              <div className="flex items-center gap-2 text-sm">
-                                <FileText className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-muted-foreground">Бүртгэлийн улсын дугаар:</span>
-                                <span className="font-medium">{d.userPlateNo}</span>
-                              </div>
-                            )}
                           </div>
 
                           {/* Photos grid */}
