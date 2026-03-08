@@ -5,12 +5,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Search, MapPin, Shield, ArrowRight, Car, Users, Clock, Star, Sparkles, Loader2, CheckCircle, Phone, CreditCard, Compass, Route, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-landscape.jpg";
+import heroNightImage from "@/assets/hero-night.jpg";
+import { useTheme } from "@/components/ThemeProvider";
 import { collection, getCountFromServer } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 const Landing: React.FC = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
+  const { theme } = useTheme();
   const [stats, setStats] = useState({ users: 0, drivers: 0 });
   const [statsLoaded, setStatsLoaded] = useState(false);
 
@@ -73,7 +76,7 @@ const Landing: React.FC = () => {
       {/* Hero */}
       <section className="relative min-h-[92vh] flex items-center overflow-hidden">
         <div className="absolute inset-0">
-          <img src={heroImage} alt="Монгол тал" className="w-full h-full object-cover scale-105" />
+          <img src={theme === "dark" ? heroNightImage : heroImage} alt="Монгол тал" className="w-full h-full object-cover scale-105 transition-opacity duration-700" />
           <div className="absolute inset-0 bg-gradient-to-r from-foreground/85 via-foreground/60 to-foreground/20" />
           <div className="absolute inset-0 bg-gradient-to-t from-foreground/50 via-transparent to-foreground/10" />
         </div>
