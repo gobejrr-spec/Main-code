@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { MapPin, Calendar, Clock, Users, Plus, Upload, Shield, AlertCircle, Loader2, CheckCircle, Lock, X, Image } from "lucide-react";
+import { MapPin, Calendar, Clock, Users, Plus, Upload, Shield, AlertCircle, Loader2, CheckCircle, Lock, X, Image, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +10,9 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { toast } from "sonner";
 import LocationSelect from "@/components/LocationSelect";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel
+} from "@/components/ui/select";
 
 interface Trip {
   id: string;
@@ -22,14 +25,32 @@ interface Trip {
   status: string;
 }
 
+const CAR_BRANDS: Record<string, string[]> = {
+  "Toyota": ["Prius", "Camry", "Corolla", "RAV4", "Land Cruiser", "Hilux", "Hiace", "Alphard", "Noah", "Voxy", "Wish", "Fielder", "Aqua", "Vitz", "Harrier", "Fortuner"],
+  "Hyundai": ["Starex", "Tucson", "Santa Fe", "Sonata", "Elantra", "Accent", "Porter", "Creta", "Palisade", "Kona", "i30"],
+  "Kia": ["Sportage", "Sorento", "K5", "K3", "Carnival", "Seltos", "Morning", "Rio"],
+  "Lexus": ["RX", "LX", "NX", "ES", "IS", "GX"],
+  "Honda": ["Fit", "CRV", "HRV", "Civic", "Accord", "Stepwgn", "Freed", "Vezel"],
+  "Nissan": ["X-Trail", "Note", "Serena", "Elgrand", "Juke", "Qashqai", "Patrol", "Leaf"],
+  "Mitsubishi": ["Pajero", "Outlander", "Delica", "L200", "Eclipse Cross", "ASX"],
+  "Suzuki": ["Swift", "Jimny", "Vitara", "SX4", "Escudo", "Every"],
+  "Ford": ["Explorer", "Ranger", "Everest", "Focus", "Escape"],
+  "Mercedes-Benz": ["Sprinter", "V-Class", "GLE", "GLC", "E-Class", "C-Class", "S-Class"],
+  "BMW": ["X5", "X3", "X1", "3 Series", "5 Series", "7 Series"],
+  "Volkswagen": ["Passat", "Tiguan", "Polo", "Golf", "Touareg"],
+  "SsangYong": ["Rexton", "Tivoli", "Korando", "Musso"],
+  "УАЗ": ["Патриот", "Буханка", "Хантер"],
+  "Бусад": ["Бусад"],
+};
+
 const PHOTO_LABELS = [
   { key: "idFront", label: "Иргэний үнэмлэх (Урд)" },
   { key: "idBack", label: "Иргэний үнэмлэх (Ар)" },
-  { key: "vehicleRegistration", label: "Тээврийн хэрэгслийн гэрчилгээ" },
-  { key: "carFront", label: "Машины урд зураг" },
-  { key: "carBack", label: "Машины хойд зураг" },
-  { key: "carLeft", label: "Машины зүүн зураг" },
-  { key: "carRight", label: "Машины баруун зураг" },
+  { key: "vehicleRegistration", label: "ТХ гэрчилгээ" },
+  { key: "carFront", label: "Машин (Урд)" },
+  { key: "carBack", label: "Машин (Хойд)" },
+  { key: "carLeft", label: "Машин (Зүүн)" },
+  { key: "carRight", label: "Машин (Баруун)" },
   { key: "carInterior", label: "Дотор зураг" },
 ];
 
@@ -52,10 +73,13 @@ const DriverDashboard: React.FC = () => {
   const [carType, setCarType] = useState("");
 
   // Driver document fields
+  const [selectedBrand, setSelectedBrand] = useState("");
+  const [selectedModel, setSelectedModel] = useState("");
   const [vehiclePlate, setVehiclePlate] = useState("");
+  const [plateNumber, setPlateNumber] = useState("");
+  const [plateSuffix, setPlateSuffix] = useState("");
   const [licenseNumber, setLicenseNumber] = useState("");
   const [driverEmail, setDriverEmail] = useState("");
-  const [vehicleType, setVehicleType] = useState("");
 
   // Photo uploads
   const [photos, setPhotos] = useState<Record<string, File | null>>({});
@@ -75,7 +99,13 @@ const DriverDashboard: React.FC = () => {
           setVehiclePlate(data.vehiclePlate || "");
           setLicenseNumber(data.licenseNumber || "");
           setDriverEmail(data.email || "");
-          setVehicleType(data.vehicleType || "");
+          if (data.vehicleType) {
+            const parts = data.vehicleType.split(" ");
+            if (parts.length >= 2) {
+              setSelectedBrand(parts[0]);
+              setSelectedModel(parts.slice(1).join(" "));
+            }
+          }
           if (data.photos) setPhotoUrls(data.photos);
         }
         const q = query(collection(db, "trips"), where("driverId", "==", user.uid));
@@ -91,22 +121,31 @@ const DriverDashboard: React.FC = () => {
   }, [user]);
 
   const isVerified = verificationStatus === "approved";
+  const vehicleType = selectedBrand && selectedModel ? `${selectedBrand} ${selectedModel}` : "";
 
   const handlePhotoSelect = (key: string, file: File | null) => {
     if (!file) return;
     setPhotos(prev => ({ ...prev, [key]: file }));
   };
 
+  const removePhoto = (key: string) => {
+    setPhotos(prev => { const n = { ...prev }; delete n[key]; return n; });
+    // Also clear the URL if it was previously uploaded
+    setPhotoUrls(prev => { const n = { ...prev }; delete n[key]; return n; });
+  };
+
+  const fullPlate = `${plateNumber}${plateSuffix}`.trim() || vehiclePlate;
+
   const handleSubmitVerification = async () => {
     if (!user) return;
-    if (!vehiclePlate || !licenseNumber || !vehicleType) {
+    if (!vehicleType || (!fullPlate) || !licenseNumber) {
       toast.error("Тээврийн хэрэгсэл, улсын дугаар, жолоочийн үнэмлэхийн дугаар бөглөнө үү");
       return;
     }
     setUploadingDocs(true);
     try {
       const uploadedPhotos: Record<string, string> = { ...photoUrls };
-      
+
       for (const [key, file] of Object.entries(photos)) {
         if (file) {
           const storageRef = ref(storage, `drivers/${user.uid}/${key}_${Date.now()}`);
@@ -119,7 +158,7 @@ const DriverDashboard: React.FC = () => {
       await setDoc(doc(db, "drivers", user.uid), {
         userId: user.uid,
         vehicleType,
-        vehiclePlate,
+        vehiclePlate: fullPlate,
         licenseNumber,
         email: driverEmail || profile?.phone || "",
         photos: uploadedPhotos,
@@ -131,9 +170,13 @@ const DriverDashboard: React.FC = () => {
       setPhotos({});
       setVerificationStatus("pending");
       toast.success("Бичиг баримтууд амжилттай илгээгдлээ! Админ шалгаж баталгаажуулна.");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error("Алдаа гарлаа. Дахин оролдоно уу.");
+      if (err?.code === "storage/unauthorized") {
+        toast.error("Firebase Storage зөвшөөрөл тохируулаагүй байна. Firebase Console → Storage → Rules дээр зөвшөөрөл нэмнэ үү.");
+      } else {
+        toast.error("Алдаа гарлаа. Дахин оролдоно уу.");
+      }
     } finally {
       setUploadingDocs(false);
     }
@@ -219,64 +262,121 @@ const DriverDashboard: React.FC = () => {
 
             {/* Document info fields */}
             <div className="grid sm:grid-cols-2 gap-4 mb-6">
+              {/* Vehicle Brand */}
               <div className="space-y-2">
-                <Label>Тээврийн хэрэгслийн төрөл *</Label>
-                <Input placeholder="Toyota Prius, Hyundai Starex г.м." value={vehicleType} onChange={e => setVehicleType(e.target.value)} />
+                <Label>Машины брэнд *</Label>
+                <Select value={selectedBrand} onValueChange={(val) => { setSelectedBrand(val); setSelectedModel(""); }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Брэнд сонгох" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {Object.keys(CAR_BRANDS).map(brand => (
+                      <SelectItem key={brand} value={brand}>{brand}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
+
+              {/* Vehicle Model */}
+              <div className="space-y-2">
+                <Label>Машины модел *</Label>
+                <Select value={selectedModel} onValueChange={setSelectedModel} disabled={!selectedBrand}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={selectedBrand ? "Модел сонгох" : "Эхлээд брэнд сонгоно уу"} />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {selectedBrand && CAR_BRANDS[selectedBrand]?.map(model => (
+                      <SelectItem key={model} value={model}>{model}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* License Plate - number + suffix */}
               <div className="space-y-2">
                 <Label>Улсын дугаар *</Label>
-                <Input placeholder="0000 УБА" value={vehiclePlate} onChange={e => setVehiclePlate(e.target.value)} />
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="0000"
+                    value={plateNumber}
+                    onChange={e => {
+                      const val = e.target.value.replace(/\D/g, "").slice(0, 4);
+                      setPlateNumber(val);
+                    }}
+                    className="w-24"
+                    inputMode="numeric"
+                  />
+                  <Input
+                    placeholder="УБА"
+                    value={plateSuffix}
+                    onChange={e => setPlateSuffix(e.target.value.toUpperCase().slice(0, 5))}
+                    className="flex-1"
+                  />
+                </div>
               </div>
+
+              {/* License Number */}
               <div className="space-y-2">
                 <Label>Жолоочийн үнэмлэхийн дугаар *</Label>
-                <Input placeholder="AA00000000" value={licenseNumber} onChange={e => setLicenseNumber(e.target.value)} />
+                <Input
+                  placeholder="00000000"
+                  value={licenseNumber}
+                  onChange={e => {
+                    const val = e.target.value.replace(/\D/g, "").slice(0, 10);
+                    setLicenseNumber(val);
+                  }}
+                  inputMode="numeric"
+                />
               </div>
-              <div className="space-y-2">
+
+              {/* Email */}
+              <div className="space-y-2 sm:col-span-2">
                 <Label>Имэйл</Label>
                 <Input type="email" placeholder="example@mail.com" value={driverEmail} onChange={e => setDriverEmail(e.target.value)} />
               </div>
             </div>
 
-            {/* Photo uploads */}
+            {/* Photo uploads - one by one */}
             <h3 className="font-medium text-sm mb-3">Зургууд байршуулах</h3>
             <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-3">
               {PHOTO_LABELS.map(({ key, label }) => {
                 const preview = photos[key] ? URL.createObjectURL(photos[key]!) : photoUrls[key];
                 return (
-                  <div
-                    key={key}
-                    className="relative border-2 border-dashed border-border rounded-xl overflow-hidden hover:border-primary/50 transition-colors cursor-pointer group aspect-[4/3]"
-                    onClick={() => fileInputRefs.current[key]?.click()}
-                  >
-                    <input
-                      ref={el => { fileInputRefs.current[key] = el; }}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={e => handlePhotoSelect(key, e.target.files?.[0] || null)}
-                    />
-                    {preview ? (
-                      <>
-                        <img src={preview} alt={label} className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <Upload className="h-5 w-5 text-white" />
+                  <div key={key} className="space-y-1">
+                    <div
+                      className="relative border-2 border-dashed border-border rounded-xl overflow-hidden hover:border-primary/50 transition-colors cursor-pointer group aspect-[4/3]"
+                      onClick={() => fileInputRefs.current[key]?.click()}
+                    >
+                      <input
+                        ref={el => { fileInputRefs.current[key] = el; }}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={e => handlePhotoSelect(key, e.target.files?.[0] || null)}
+                      />
+                      {preview ? (
+                        <>
+                          <img src={preview} alt={label} className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <Upload className="h-5 w-5 text-white" />
+                          </div>
+                          <button
+                            className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removePhoto(key);
+                            }}
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center h-full p-3">
+                          <Image className="h-5 w-5 text-muted-foreground mb-1 group-hover:text-primary transition-colors" />
+                          <p className="text-[10px] text-muted-foreground text-center leading-tight">{label}</p>
                         </div>
-                        <button
-                          className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setPhotos(prev => { const n = { ...prev }; delete n[key]; return n; });
-                          }}
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center h-full p-3">
-                        <Image className="h-5 w-5 text-muted-foreground mb-1 group-hover:text-primary transition-colors" />
-                        <p className="text-[10px] text-muted-foreground text-center leading-tight">{label}</p>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -383,8 +483,8 @@ const DriverDashboard: React.FC = () => {
                 <div className="text-right">
                   <p className="font-heading font-bold text-primary">{trip.price?.toLocaleString()}₮</p>
                   <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-                    trip.status === "approved" 
-                      ? "bg-success/10 text-success" 
+                    trip.status === "approved"
+                      ? "bg-success/10 text-success"
                       : trip.status === "rejected"
                       ? "bg-destructive/10 text-destructive"
                       : "bg-warning/10 text-warning"
