@@ -81,10 +81,12 @@ const AdminDashboard: React.FC = () => {
   const [allTrips, setAllTrips] = useState<TripRecord[]>([]);
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"users" | "drivers" | "alltrips" | "pendingtrips" | "complaints">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "drivers" | "alltrips" | "pendingtrips" | "complaints" | "settings">("users");
   const [expandedDriver, setExpandedDriver] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; type: "user" | "driver" } | null>(null);
   const [photoModal, setPhotoModal] = useState<{ url: string; label: string } | null>(null);
+  const [pricePerKm, setPricePerKm] = useState<number>(150);
+  const [savingSettings, setSavingSettings] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!auth.currentUser) {
