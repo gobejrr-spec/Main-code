@@ -230,8 +230,13 @@ const TripDetails: React.FC = () => {
                 <CreditCard className="h-5 w-5 text-secondary" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Үнэ</p>
-                <p className="text-sm font-bold text-primary mt-0.5">{trip.price.toLocaleString()}₮</p>
+                <p className="text-xs text-muted-foreground">Тооцоолсон үнэ</p>
+                <p className="text-sm font-bold text-primary mt-0.5">
+                  {calculatedPrice ? `${calculatedPrice.toLocaleString()}₮` : `${trip.price.toLocaleString()}₮`}
+                </p>
+                {distanceKm && (
+                  <p className="text-[10px] text-muted-foreground">{distanceKm}км × {pricePerKm}₮</p>
+                )}
               </div>
             </div>
           </div>
