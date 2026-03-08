@@ -191,12 +191,37 @@ const AdminDashboard: React.FC = () => {
     setActionLoading(driverId);
     try {
       await updateDoc(doc(db, "drivers", driverId), { verificationStatus: status });
+      const driver = allDrivers.find(d => d.id === driverId);
+      if (driver && status === "approved") {
+        await updateDoc(doc(db, "users", driver.userId), { role: "driver" });
+        setAllUsers(prev => prev.map(u => u.id === driver.userId ? { ...u, role: "driver" } : u));
+      }
       setAllDrivers(prev => prev.map(d => d.id === driverId ? { ...d, verificationStatus: status } : d));
       toast.success(status === "approved" ? "Жолооч зөвшөөрөгдлөө!" : "Жолооч татгалзсан");
     } catch (err) {
       console.error(err);
       toast.error("Алдаа гарлаа");
     } finally { setActionLoading(null); }
+  };
+
+  const handleDeleteDriver = async (driverId: string) => {
+    setActionLoading(driverId);
+    try {
+      const driver = allDrivers.find(d => d.id === driverId);
+      await deleteDoc(doc(db, "drivers", driverId));
+      if (driver) {
+        await updateDoc(doc(db, "users", driver.userId), { role: "passenger" });
+        setAllUsers(prev => prev.map(u => u.id === driver.userId ? { ...u, role: "passenger" } : u));
+      }
+      setAllDrivers(prev => prev.filter(d => d.id !== driverId));
+      toast.success("Жолоочийн бүртгэл устгагдлаа");
+    } catch (err) {
+      console.error(err);
+      toast.error("Устгах амжилтгүй");
+    } finally {
+      setActionLoading(null);
+      setDeleteConfirm(null);
+    }
   };
 
   const handleTripAction = async (tripId: string, status: string) => {
