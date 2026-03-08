@@ -515,8 +515,13 @@ const DriverDashboard: React.FC = () => {
                 <Input type="number" min="1" max="10" placeholder="4" value={tripSeats} onChange={(e) => setTripSeats(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label>Үнэ (₮)</Label>
+                <Label>Үнэ (₮) — автомат тооцоолол</Label>
                 <Input type="number" placeholder="25000" value={tripPrice} onChange={(e) => setTripPrice(e.target.value)} />
+                {tripFrom && tripTo && getDistanceKm(tripFrom, tripTo) && (
+                  <p className="text-xs text-muted-foreground">
+                    {getDistanceKm(tripFrom, tripTo)} км × {pricePerKm}₮/км
+                  </p>
+                )}
               </div>
             </div>
             <div className="flex gap-3 mt-5">
