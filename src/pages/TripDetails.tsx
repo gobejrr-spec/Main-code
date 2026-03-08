@@ -137,128 +137,140 @@ const TripDetails: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background pt-20 pb-10">
-      <div className="container mx-auto px-4 max-w-2xl">
-        <Link to="/trips" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
-          <ArrowLeft className="h-4 w-4" /> Буцах
+      {/* Top gradient accent */}
+      <div className="absolute top-0 left-0 right-0 h-72 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
+      
+      <div className="container mx-auto px-4 max-w-2xl relative z-10">
+        <Link to="/trips" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8 group">
+          <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" /> Буцах
         </Link>
 
-        <h1 className="font-heading text-2xl font-bold mb-6">Аялалын дэлгэрэнгүй</h1>
+        <h1 className="font-heading text-3xl font-bold mb-8 animate-fade-in">Аялалын дэлгэрэнгүй</h1>
 
-        <div className="glass-card-elevated rounded-2xl p-6 space-y-6 animate-fade-in">
-          {/* Route */}
-          <div className="flex items-start gap-4">
-            <div className="flex flex-col items-center gap-1">
-              <div className="w-3.5 h-3.5 rounded-full bg-primary" />
-              <div className="w-px h-8 bg-border" />
-              <div className="w-3.5 h-3.5 rounded-full bg-accent" />
-            </div>
-            <div className="flex-1 space-y-4">
-              <div>
-                <p className="text-xs text-muted-foreground">{t("from")}</p>
-                <p className="font-heading font-semibold text-lg">{trip.from}</p>
+        <div className="space-y-5 animate-fade-in" style={{ animationDelay: "100ms" }}>
+          {/* Route Card */}
+          <div className="glass-card-elevated rounded-2xl p-7">
+            <div className="flex items-start gap-5">
+              <div className="flex flex-col items-center gap-1 pt-1">
+                <div className="w-4 h-4 rounded-full bg-primary shadow-md ring-4 ring-primary/20" />
+                <div className="w-0.5 h-10 bg-gradient-to-b from-primary/40 to-accent/40 rounded-full" />
+                <div className="w-4 h-4 rounded-full bg-accent shadow-md ring-4 ring-accent/20" />
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground">{t("to")}</p>
-                <p className="font-heading font-semibold text-lg">{trip.to}</p>
+              <div className="flex-1 space-y-5">
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Хаанаас</p>
+                  <p className="font-heading font-bold text-xl mt-1">{trip.from}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Хаашаа</p>
+                  <p className="font-heading font-bold text-xl mt-1">{trip.to}</p>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Details Grid */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
-              <Calendar className="h-5 w-5 text-primary" />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="glass-card-elevated rounded-2xl p-5 flex items-center gap-4">
+              <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Calendar className="h-5 w-5 text-primary" />
+              </div>
               <div>
                 <p className="text-xs text-muted-foreground">Огноо</p>
-                <p className="text-sm font-medium">{trip.date}</p>
+                <p className="text-sm font-semibold mt-0.5">{trip.date}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
-              <Clock className="h-5 w-5 text-primary" />
+            <div className="glass-card-elevated rounded-2xl p-5 flex items-center gap-4">
+              <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Clock className="h-5 w-5 text-primary" />
+              </div>
               <div>
                 <p className="text-xs text-muted-foreground">Хөдлөх цаг</p>
-                <p className="text-sm font-medium">{trip.time}</p>
+                <p className="text-sm font-semibold mt-0.5">{trip.time}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
-              <Users className="h-5 w-5 text-primary" />
+            <div className="glass-card-elevated rounded-2xl p-5 flex items-center gap-4">
+              <div className="w-11 h-11 rounded-xl bg-success/10 flex items-center justify-center flex-shrink-0">
+                <Users className="h-5 w-5 text-success" />
+              </div>
               <div>
                 <p className="text-xs text-muted-foreground">Үлдсэн суудал</p>
-                <p className={`text-sm font-bold ${remainingSeats <= 1 ? "text-destructive" : "text-success"}`}>
+                <p className={`text-sm font-bold mt-0.5 ${remainingSeats <= 1 ? "text-destructive" : "text-success"}`}>
                   {remainingSeats} / {trip.seats}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
-              <CreditCard className="h-5 w-5 text-primary" />
+            <div className="glass-card-elevated rounded-2xl p-5 flex items-center gap-4">
+              <div className="w-11 h-11 rounded-xl bg-secondary/10 flex items-center justify-center flex-shrink-0">
+                <CreditCard className="h-5 w-5 text-secondary" />
+              </div>
               <div>
                 <p className="text-xs text-muted-foreground">Үнэ</p>
-                <p className="text-sm font-bold text-primary">{trip.price.toLocaleString()}₮</p>
+                <p className="text-sm font-bold text-primary mt-0.5">{trip.price.toLocaleString()}₮</p>
               </div>
             </div>
           </div>
 
-          {/* Driver Info - full details */}
-          <div className="border-t border-border pt-5">
-            <h3 className="font-heading font-semibold mb-4 flex items-center gap-2">
+          {/* Driver Info */}
+          <div className="glass-card-elevated rounded-2xl p-7">
+            <h3 className="font-heading font-semibold text-lg mb-5 flex items-center gap-2">
               <User className="h-5 w-5 text-primary" />
               Жолоочийн мэдээлэл
             </h3>
-            <div className="glass-card rounded-xl p-4 space-y-3">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-                  <User className="h-7 w-7 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-heading font-semibold text-lg">
-                    {driverInfo?.driverLastName ? `${driverInfo.driverLastName} ` : ""}{trip.driverName}
-                  </p>
-                  <div className="flex items-center gap-1 text-xs text-success mt-1">
-                    <Shield className="h-3 w-3" /> Баталгаажсан жолооч
-                  </div>
+            <div className="flex items-center gap-4 mb-5">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/15 to-accent/15 flex items-center justify-center">
+                <User className="h-8 w-8 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="font-heading font-bold text-lg">
+                  {driverInfo?.driverLastName ? `${driverInfo.driverLastName} ` : ""}{trip.driverName}
+                </p>
+                <div className="inline-flex items-center gap-1.5 text-xs text-success mt-1.5 bg-success/8 px-2.5 py-1 rounded-full">
+                  <Shield className="h-3 w-3" /> Баталгаажсан жолооч
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/50">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Утас</p>
-                    <p className="text-sm font-medium">{trip.driverPhone || "—"}</p>
-                  </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex items-center gap-3 p-3.5 rounded-xl bg-muted/40 hover:bg-muted/60 transition-colors">
+                <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[11px] text-muted-foreground">Утас</p>
+                  <p className="text-sm font-medium truncate">{trip.driverPhone || "—"}</p>
                 </div>
-                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/50">
-                  <Car className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Машин</p>
-                    <p className="text-sm font-medium">{driverInfo?.vehicleType || trip.carType || "—"}</p>
-                  </div>
+              </div>
+              <div className="flex items-center gap-3 p-3.5 rounded-xl bg-muted/40 hover:bg-muted/60 transition-colors">
+                <Car className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[11px] text-muted-foreground">Машин</p>
+                  <p className="text-sm font-medium truncate">{driverInfo?.vehicleType || trip.carType || "—"}</p>
                 </div>
-                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/50">
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Улсын дугаар</p>
-                    <p className="text-sm font-medium">{driverInfo?.vehiclePlate || "—"}</p>
-                  </div>
+              </div>
+              <div className="flex items-center gap-3 p-3.5 rounded-xl bg-muted/40 hover:bg-muted/60 transition-colors">
+                <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[11px] text-muted-foreground">Улсын дугаар</p>
+                  <p className="text-sm font-medium truncate">{driverInfo?.vehiclePlate || "—"}</p>
                 </div>
-                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/50">
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Жолоочийн үнэмлэх</p>
-                    <p className="text-sm font-medium">{driverInfo?.licenseNumber || "—"}</p>
-                  </div>
+              </div>
+              <div className="flex items-center gap-3 p-3.5 rounded-xl bg-muted/40 hover:bg-muted/60 transition-colors">
+                <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[11px] text-muted-foreground">Жолоочийн үнэмлэх</p>
+                  <p className="text-sm font-medium truncate">{driverInfo?.licenseNumber || "—"}</p>
                 </div>
               </div>
             </div>
           </div>
 
+          {/* Book Button */}
           <Button
-            className="w-full h-12 text-base glow-primary"
+            className="w-full h-14 text-base font-semibold glow-primary rounded-xl"
             size="lg"
             onClick={handleBook}
             disabled={booking || remainingSeats <= 0}
           >
             {booking ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
             ) : remainingSeats <= 0 ? (
               "Суудал дууссан"
             ) : (
