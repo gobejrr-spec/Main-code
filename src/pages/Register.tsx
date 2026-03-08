@@ -23,6 +23,8 @@ const Register: React.FC = () => {
   const navigate = useNavigate();
   const [form, setForm] = useState({
     name: "",
+    lastName: "",
+    registerNo: "",
     email: "",
     phone: "",
     password: "",
@@ -64,6 +66,14 @@ const Register: React.FC = () => {
 
     if (!form.name || !form.email || !form.phone || !form.password) {
       toast.error("Бүх талбарыг бөглөнө үү");
+      return;
+    }
+    if (form.role === "driver" && (!form.lastName || !form.registerNo)) {
+      toast.error("Овог болон регистрийн дугаар бөглөнө үү");
+      return;
+    }
+    if (form.role === "driver" && !/^[А-ЯӨҮЁа-яөүё]{2}\d{8}$/.test(form.registerNo)) {
+      toast.error("Регистрийн дугаар буруу байна (жишээ: АА00000000)");
       return;
     }
     if (form.password !== form.confirmPassword) {
@@ -134,6 +144,7 @@ const Register: React.FC = () => {
       // Save user profile to Firestore
       await setDoc(doc(db, "users", cred.user.uid), {
         name: form.name,
+        ...(form.role === "driver" ? { lastName: form.lastName, registerNo: form.registerNo } : {}),
         phone: form.phone,
         role: form.role,
         language,
@@ -206,24 +217,64 @@ const Register: React.FC = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">{t("name")} {form.role === "driver" && <span className="text-xs text-muted-foreground">(кирилл)</span>}</Label>
-                <Input
-                  value={form.name}
-                  onChange={(e) => {
-                    if (form.role === "driver") {
+            {form.role === "driver" ? (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Овог <span className="text-xs text-muted-foreground">(кирилл)</span></Label>
+                  <Input
+                    value={form.lastName}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^а-яА-ЯөӨүҮёЁ\s-]/g, "");
+                      update("lastName", val);
+                    }}
+                    required
+                    className="h-11"
+                    placeholder="Дорж"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Нэр <span className="text-xs text-muted-foreground">(кирилл)</span></Label>
+                  <Input
+                    value={form.name}
+                    onChange={(e) => {
                       const val = e.target.value.replace(/[^а-яА-ЯөӨүҮёЁ\s-]/g, "");
                       update("name", val);
-                    } else {
-                      update("name", e.target.value);
-                    }
+                    }}
+                    required
+                    className="h-11"
+                    placeholder="Баатар"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">{t("name")}</Label>
+                <Input value={form.name} onChange={(e) => update("name", e.target.value)} required className="h-11" placeholder="Name / Нэр" />
+              </div>
+            )}
+
+            {form.role === "driver" && (
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Регистрийн дугаар</Label>
+                <Input
+                  value={form.registerNo}
+                  onChange={(e) => {
+                    let val = e.target.value.toUpperCase();
+                    // First 2 chars: cyrillic only, rest: digits only
+                    const letters = val.slice(0, 2).replace(/[^А-ЯӨҮЁа-яөүё]/g, "").toUpperCase();
+                    const digits = val.slice(2).replace(/\D/g, "").slice(0, 8);
+                    update("registerNo", letters + digits);
                   }}
                   required
                   className="h-11"
-                  placeholder={form.role === "driver" ? "Баатар" : "Name / Нэр"}
+                  placeholder="АА00000000"
+                  maxLength={10}
                 />
+                <p className="text-[11px] text-muted-foreground">2 кирилл үсэг + 8 тоо</p>
               </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label className="text-sm font-medium">{t("phone")}</Label>
                 <div className="relative">
