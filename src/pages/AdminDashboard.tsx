@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import {
-  collection, query, where, getDocs, doc, updateDoc, deleteDoc, getCountFromServer,
+  collection, query, where, getDocs, doc, updateDoc, deleteDoc, getCountFromServer, setDoc, serverTimestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import {
@@ -193,7 +193,7 @@ const AdminDashboard: React.FC = () => {
       await updateDoc(doc(db, "drivers", driverId), { verificationStatus: status });
       const driver = allDrivers.find(d => d.id === driverId);
       if (driver && status === "approved") {
-        await updateDoc(doc(db, "users", driver.userId), { role: "driver" });
+        await setDoc(doc(db, "users", driver.userId), { role: "driver" }, { merge: true });
         setAllUsers(prev => prev.map(u => u.id === driver.userId ? { ...u, role: "driver" } : u));
       }
       setAllDrivers(prev => prev.map(d => d.id === driverId ? { ...d, verificationStatus: status } : d));
