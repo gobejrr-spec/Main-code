@@ -71,6 +71,7 @@ const PHOTO_LABELS: Record<string, string> = {
 };
 
 const AdminDashboard: React.FC = () => {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ users: 0, drivers: 0, trips: 0, completed: 0 });
   const [allUsers, setAllUsers] = useState<UserRecord[]>([]);
@@ -84,6 +85,12 @@ const AdminDashboard: React.FC = () => {
   const [photoModal, setPhotoModal] = useState<{ url: string; label: string } | null>(null);
 
   const fetchData = useCallback(async () => {
+    if (!auth.currentUser) {
+      console.error("Auth: Хэрэглэгч нэвтрээгүй байна!", auth.currentUser);
+      setLoading(false);
+      return;
+    }
+    console.log("Auth: Нэвтэрсэн хэрэглэгч:", auth.currentUser.uid, auth.currentUser.email);
     setLoading(true);
     try {
       const [usersSnap, driversSnap, tripsSnap, completedSnap] = await Promise.all([
