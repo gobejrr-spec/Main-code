@@ -62,6 +62,20 @@ interface Complaint {
   createdAt: any;
 }
 
+interface BookingRecord {
+  id: string;
+  userId: string;
+  tripId: string;
+  passengerName: string;
+  passengerPhone: string;
+  seats: number;
+  status: string;
+  createdAt: any;
+  tripFrom?: string;
+  tripTo?: string;
+  tripDate?: string;
+}
+
 const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -71,8 +85,9 @@ const AdminDashboard: React.FC = () => {
   const [allDrivers, setAllDrivers] = useState<DriverRecord[]>([]);
   const [allTrips, setAllTrips] = useState<TripRecord[]>([]);
   const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [allBookings, setAllBookings] = useState<BookingRecord[]>([]);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"users" | "drivers" | "alltrips" | "pendingtrips" | "complaints" | "settings">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "drivers" | "alltrips" | "pendingtrips" | "complaints" | "settings" | "bookings">("users");
   const [expandedDriver, setExpandedDriver] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; type: "user" | "driver" } | null>(null);
   const [photoModal, setPhotoModal] = useState<{ url: string; label: string } | null>(null);
