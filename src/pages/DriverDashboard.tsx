@@ -217,6 +217,7 @@ const DriverDashboard: React.FC = () => {
       setPhotoUrls(uploadedPhotos);
       setPhotos({});
       setVerificationStatus("pending");
+      setHasSubmitted(true);
       toast.success("Бичиг баримтууд амжилттай илгээгдлээ! Админ шалгаж баталгаажуулна.");
     } catch (err: any) {
       console.error(err);
