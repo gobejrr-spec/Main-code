@@ -151,7 +151,7 @@ const DriverDashboard: React.FC = () => {
     setPhotoUrls(prev => { const n = { ...prev }; delete n[key]; return n; });
   };
 
-  const fullPlate = `${plateNumber}${plateSuffix}`.trim() || vehiclePlate;
+  const fullPlate = plateNumber.trim() || vehiclePlate;
 
   const handleSubmitVerification = async () => {
     if (!user) return;
