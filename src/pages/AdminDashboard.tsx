@@ -350,9 +350,9 @@ const AdminDashboard: React.FC = () => {
     try {
       await setDoc(doc(db, "settings", "platform"), { pricePerKm }, { merge: true });
       toast.success(t("settingsSaved"));
-    } catch (err) {
-      console.error(err);
-      toast.error(t("settingsSaveFailed"));
+    } catch (err: any) {
+      console.error("Settings save error:", err?.code, err?.message, err);
+      toast.error(t("settingsSaveFailed") + ": " + (err?.code || err?.message || "Unknown error"));
     } finally {
       setSavingSettings(false);
     }
