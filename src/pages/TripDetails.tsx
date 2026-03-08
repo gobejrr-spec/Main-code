@@ -40,6 +40,7 @@ const TripDetails: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [bookedSeats, setBookedSeats] = useState(0);
   const [booking, setBooking] = useState(false);
+  const [pricePerKm, setPricePerKm] = useState<number>(150);
 
   useEffect(() => {
     const fetchTrip = async () => {
@@ -69,6 +70,15 @@ const TripDetails: React.FC = () => {
             } catch (bookingErr) {
               console.warn("Could not fetch bookings count:", bookingErr);
               setBookedSeats(0);
+            }
+            // Fetch platform settings for price per km
+            try {
+              const settingsDoc = await getDoc(doc(db, "settings", "platform"));
+              if (settingsDoc.exists() && settingsDoc.data().pricePerKm) {
+                setPricePerKm(settingsDoc.data().pricePerKm);
+              }
+            } catch (sErr) {
+              console.warn("Could not fetch settings:", sErr);
             }
           }
         }
@@ -137,6 +147,7 @@ const TripDetails: React.FC = () => {
   }
 
   const distanceKm = trip ? getDistanceKm(trip.from, trip.to) : null;
+  const calculatedPrice = distanceKm ? distanceKm * pricePerKm : null;
 
   return (
     <div className="min-h-screen bg-background pt-20 pb-10">
@@ -219,8 +230,13 @@ const TripDetails: React.FC = () => {
                 <CreditCard className="h-5 w-5 text-secondary" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Үнэ</p>
-                <p className="text-sm font-bold text-primary mt-0.5">{trip.price.toLocaleString()}₮</p>
+                <p className="text-xs text-muted-foreground">Тооцоолсон үнэ</p>
+                <p className="text-sm font-bold text-primary mt-0.5">
+                  {calculatedPrice ? `${calculatedPrice.toLocaleString()}₮` : `${trip.price.toLocaleString()}₮`}
+                </p>
+                {distanceKm && (
+                  <p className="text-[10px] text-muted-foreground">{distanceKm}км × {pricePerKm}₮</p>
+                )}
               </div>
             </div>
           </div>

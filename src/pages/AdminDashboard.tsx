@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useCallback } from "react";
 import {
-  collection, query, where, getDocs, doc, updateDoc, deleteDoc, getCountFromServer, setDoc, serverTimestamp,
+  collection, query, where, getDocs, doc, updateDoc, deleteDoc, getCountFromServer, setDoc, serverTimestamp, getDoc,
 } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Users, Car, MapPin, CheckCircle, Shield, AlertTriangle, MessageSquare,
   Loader2, Trash2, Eye, Clock, UserPlus, XCircle, Ban, RefreshCw,
-  Phone, Mail, FileText, ChevronDown, ChevronUp, Image
+  Phone, Mail, FileText, ChevronDown, ChevronUp, Image, Settings, Save
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter
@@ -80,10 +81,12 @@ const AdminDashboard: React.FC = () => {
   const [allTrips, setAllTrips] = useState<TripRecord[]>([]);
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"users" | "drivers" | "alltrips" | "pendingtrips" | "complaints">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "drivers" | "alltrips" | "pendingtrips" | "complaints" | "settings">("users");
   const [expandedDriver, setExpandedDriver] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; type: "user" | "driver" } | null>(null);
   const [photoModal, setPhotoModal] = useState<{ url: string; label: string } | null>(null);
+  const [pricePerKm, setPricePerKm] = useState<number>(150);
+  const [savingSettings, setSavingSettings] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!auth.currentUser) {
@@ -149,6 +152,16 @@ const AdminDashboard: React.FC = () => {
         };
       });
       setComplaints(complaintsList);
+
+      // Fetch settings
+      try {
+        const settingsDoc = await getDoc(doc(db, "settings", "platform"));
+        if (settingsDoc.exists()) {
+          setPricePerKm(settingsDoc.data().pricePerKm || 150);
+        }
+      } catch (e) {
+        console.warn("Settings fetch error:", e);
+      }
     } catch (err) {
       console.error("Admin fetch error:", err);
     } finally {
@@ -279,7 +292,21 @@ const AdminDashboard: React.FC = () => {
     { key: "pendingtrips" as const, label: "Хүлээгдэж буй аялал", icon: Clock, count: pendingTrips.length },
     { key: "alltrips" as const, label: "Бүх аялал", icon: MapPin, count: allTrips.length },
     { key: "complaints" as const, label: "Гомдлууд", icon: MessageSquare, count: complaints.length },
+    { key: "settings" as const, label: "Тохиргоо", icon: Settings, count: 0 },
   ];
+
+  const handleSaveSettings = async () => {
+    setSavingSettings(true);
+    try {
+      await setDoc(doc(db, "settings", "platform"), { pricePerKm }, { merge: true });
+      toast.success("Тохиргоо хадгалагдлаа!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Тохиргоо хадгалах амжилтгүй");
+    } finally {
+      setSavingSettings(false);
+    }
+  };
 
   const statusBadge = (status: string) => {
     const map: Record<string, string> = {
@@ -705,6 +732,40 @@ const AdminDashboard: React.FC = () => {
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* SETTINGS TAB */}
+          {activeTab === "settings" && (
+            <div>
+              <h2 className="font-heading font-semibold text-xl mb-6 flex items-center gap-2">
+                <Settings className="h-5 w-5 text-primary" /> Платформын тохиргоо
+              </h2>
+              <div className="max-w-md space-y-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">1 км-ийн үнэ (₮)</label>
+                  <p className="text-xs text-muted-foreground">Аялалын үнийг автоматаар тооцоолоход ашиглана</p>
+                  <div className="flex items-center gap-3">
+                    <Input
+                      type="number"
+                      value={pricePerKm}
+                      onChange={(e) => setPricePerKm(Number(e.target.value))}
+                      min={1}
+                      className="max-w-[200px]"
+                    />
+                    <span className="text-sm text-muted-foreground">₮/км</span>
+                  </div>
+                </div>
+                <div className="p-4 rounded-xl bg-muted/30">
+                  <p className="text-sm text-muted-foreground mb-1">Жишээ тооцоолол:</p>
+                  <p className="font-medium">100 км × {pricePerKm}₮ = <span className="text-primary font-bold">{(100 * pricePerKm).toLocaleString()}₮</span></p>
+                  <p className="font-medium mt-1">500 км × {pricePerKm}₮ = <span className="text-primary font-bold">{(500 * pricePerKm).toLocaleString()}₮</span></p>
+                </div>
+                <Button onClick={handleSaveSettings} disabled={savingSettings}>
+                  {savingSettings ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                  Хадгалах
+                </Button>
+              </div>
             </div>
           )}
         </div>
