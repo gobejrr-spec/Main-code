@@ -5,7 +5,7 @@ import { MapPin, Calendar, Clock, Users, Plus, Upload, Shield, AlertCircle, Load
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { collection, query, where, getDocs, addDoc, serverTimestamp, doc, getDoc, setDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, addDoc, serverTimestamp, doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { toast } from "sonner";
