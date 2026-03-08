@@ -802,7 +802,7 @@ const AdminDashboard: React.FC = () => {
                           disabled={actionLoading === trip.id}
                           onClick={() => handleDeleteTrip(trip.id)}
                         >
-                          {actionLoading === trip.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <><Trash2 className="mr-1 h-3 w-3" />{t("deleteAction")}</>}
+                          {actionLoading === trip.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <><Trash2 className="mr-1 h-3 w-3" />{t("delete")}</>}
                         </Button>
                       </div>
                     </div>
