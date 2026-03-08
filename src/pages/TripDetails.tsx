@@ -42,11 +42,16 @@ const TripDetails: React.FC = () => {
           const data = docSnap.data() as TripData;
           if (data.status === "approved") {
             setTrip(data);
-            // Get booked seats count
-            const bookingsSnap = await getCountFromServer(
-              query(collection(db, "bookings"), where("tripId", "==", id), where("status", "==", "confirmed"))
-            );
-            setBookedSeats(bookingsSnap.data().count);
+            // Try to get booked seats count, handle permission errors gracefully
+            try {
+              const bookingsSnap = await getCountFromServer(
+                query(collection(db, "bookings"), where("tripId", "==", id), where("status", "==", "confirmed"))
+              );
+              setBookedSeats(bookingsSnap.data().count);
+            } catch (bookingErr) {
+              console.warn("Could not fetch bookings count:", bookingErr);
+              setBookedSeats(0);
+            }
           }
         }
       } catch (err) {
@@ -72,14 +77,18 @@ const TripDetails: React.FC = () => {
     }
     setBooking(true);
     try {
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      const userData = userDoc.exists() ? userDoc.data() : {};
       await addDoc(collection(db, "bookings"), {
         userId: user.uid,
         tripId: id,
+        passengerName: userData.name || "Зорчигч",
+        passengerPhone: userData.phone || "",
         seats: 1,
         status: "confirmed",
         createdAt: serverTimestamp(),
       });
-      toast.success("Захиалга амжилттай! Баталгаажуулах код илгээгдлээ.");
+      toast.success("Захиалга амжилттай!");
       setBookedSeats((prev) => prev + 1);
     } catch (err) {
       console.error("Booking error:", err);
