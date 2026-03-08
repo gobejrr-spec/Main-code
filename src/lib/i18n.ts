@@ -14,7 +14,7 @@ export const translations = {
     myTripsNav: "My Trips",
 
     // Landing
-    heroTitle: "Travel Across|Mongolia",
+    heroTitle: "Your Journey|Starts Here",
     heroSubtitle: "Connect with trusted rural drivers for safe, affordable rides between cities and countryside",
     searchNow: "Search Trips",
     howItWorks: "How It Works",
@@ -366,7 +366,7 @@ export const translations = {
     myTripsNav: "Миний аялалууд",
 
     // Landing
-    heroTitle: "Монголоор|аялаарай",
+    heroTitle: "Аялал чинь|эндээс эхэлнэ",
     heroSubtitle: "Хот, хөдөө хоорондын найдвартай жолоочтой холбогдоорой",
     searchNow: "Аялал хайх",
     howItWorks: "Хэрхэн ажилладаг вэ?",
