@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Globe, Menu, X, Shield, Compass, Moon, Sun } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 import { Button } from "@/components/ui/button";
-import ruralLogo from "@/assets/rural-logo.png";
+import Logo from "@/components/Logo";
 
 const Navbar: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
@@ -42,9 +42,7 @@ const Navbar: React.FC = () => {
         <Link to="/" className={`flex items-center gap-2 font-heading text-xl font-bold ${
           isLanding ? "text-primary-foreground" : "text-primary"
         }`}>
-          <span className="w-9 h-9 rounded-lg overflow-hidden flex items-center justify-center bg-primary/10 dark:bg-primary/20 p-1.5">
-            <img src={ruralLogo} alt="Rural Transport" className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-screen dark:brightness-150" />
-          </span>
+          <Logo size={28} className={isLanding ? "text-primary-foreground" : "text-primary"} />
           Rural Transport
         </Link>
 
