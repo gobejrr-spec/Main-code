@@ -300,6 +300,18 @@ const AdminDashboard: React.FC = () => {
     } finally { setActionLoading(null); }
   };
 
+  const handleDeleteTrip = async (tripId: string) => {
+    setActionLoading(tripId);
+    try {
+      await deleteDoc(doc(db, "trips", tripId));
+      setAllTrips(prev => prev.filter(t => t.id !== tripId));
+      toast.success(t("deleteSuccess"));
+    } catch (err) {
+      console.error(err);
+      toast.error(t("deleteFailed"));
+    } finally { setActionLoading(null); }
+  };
+
   const handleDeleteComplaint = async (complaintId: string) => {
     setActionLoading(complaintId);
     try {
@@ -783,6 +795,15 @@ const AdminDashboard: React.FC = () => {
                             {actionLoading === trip.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <><Ban className="mr-1 h-3 w-3" />{t("cancelAction2")}</>}
                           </Button>
                         )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-xs text-destructive border-destructive/30 hover:bg-destructive/10"
+                          disabled={actionLoading === trip.id}
+                          onClick={() => handleDeleteTrip(trip.id)}
+                        >
+                          {actionLoading === trip.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <><Trash2 className="mr-1 h-3 w-3" />{t("delete")}</>}
+                        </Button>
                       </div>
                     </div>
                   ))}
