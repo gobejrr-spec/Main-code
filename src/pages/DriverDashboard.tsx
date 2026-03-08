@@ -54,6 +54,23 @@ const PHOTO_LABELS = [
   { key: "carInterior", label: "Дотор зураг" },
 ];
 
+const PLATE_SUFFIXES = [
+  { code: "УБА", label: "Улаанбаатар" }, { code: "УБЕ", label: "Улаанбаатар" },
+  { code: "УБИ", label: "Улаанбаатар" }, { code: "УБО", label: "Улаанбаатар" },
+  { code: "УБУ", label: "Улаанбаатар" }, { code: "УБЯ", label: "Улаанбаатар" },
+  { code: "АРА", label: "Архангай" }, { code: "БУА", label: "Баян-Өлгий" },
+  { code: "БХА", label: "Баянхонгор" }, { code: "БОА", label: "Булган" },
+  { code: "ГАА", label: "Говь-Алтай" }, { code: "ДОА", label: "Дорноговь" },
+  { code: "ДДА", label: "Дорнод" }, { code: "ДУА", label: "Дундговь" },
+  { code: "ЗАА", label: "Завхан" }, { code: "ӨВА", label: "Өвөрхангай" },
+  { code: "ӨМА", label: "Өмнөговь" }, { code: "СҮА", label: "Сүхбаатар" },
+  { code: "СЭА", label: "Сэлэнгэ" }, { code: "ТӨА", label: "Төв" },
+  { code: "УВА", label: "Увс" }, { code: "ХОА", label: "Ховд" },
+  { code: "ХӨА", label: "Хөвсгөл" }, { code: "ХЭА", label: "Хэнтий" },
+  { code: "ДАА", label: "Дархан-Уул" }, { code: "ОРА", label: "Орхон" },
+  { code: "ГОА", label: "Говьсүмбэр" },
+];
+
 const DriverDashboard: React.FC = () => {
   const { t } = useLanguage();
   const { user, profile } = useAuth();
@@ -292,7 +309,7 @@ const DriverDashboard: React.FC = () => {
                 </Select>
               </div>
 
-              {/* License Plate - number + suffix */}
+              {/* License Plate - number + suffix dropdown */}
               <div className="space-y-2">
                 <Label>Улсын дугаар *</Label>
                 <div className="flex gap-2">
@@ -306,12 +323,16 @@ const DriverDashboard: React.FC = () => {
                     className="w-24"
                     inputMode="numeric"
                   />
-                  <Input
-                    placeholder="УБА"
-                    value={plateSuffix}
-                    onChange={e => setPlateSuffix(e.target.value.toUpperCase().slice(0, 5))}
-                    className="flex-1"
-                  />
+                  <Select value={plateSuffix} onValueChange={setPlateSuffix}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Үсэг сонгох" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-60">
+                      {PLATE_SUFFIXES.map(s => (
+                        <SelectItem key={s.code} value={s.code}>{s.code} — {s.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
