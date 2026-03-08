@@ -42,6 +42,8 @@ const PassengerDashboard: React.FC = () => {
             const tripDoc = await getDoc(doc(db, "trips", bData.tripId));
             if (tripDoc.exists()) {
               const tripData = tripDoc.data();
+              // Skip if the trip itself is cancelled
+              if (tripData.status === "cancelled") continue;
               bookingsList.push({
                 id: bDoc.id,
                 tripId: bData.tripId,
