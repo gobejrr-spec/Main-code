@@ -2,11 +2,13 @@ import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { Globe, Menu, X, Shield, Mountain, Compass } from "lucide-react";
+import { Globe, Menu, X, Shield, Compass, Moon, Sun } from "lucide-react";
+import { useTheme } from "@/components/ThemeProvider";
 import { Button } from "@/components/ui/button";
 import ruralLogo from "@/assets/rural-logo.png";
 
 const Navbar: React.FC = () => {
+  const { theme, toggleTheme } = useTheme();
   const { t, language, setLanguage } = useLanguage();
   const { user, profile, logout } = useAuth();
   const navigate = useNavigate();
@@ -54,6 +56,15 @@ const Navbar: React.FC = () => {
             <Compass className="h-3.5 w-3.5" />
             Аймгууд
           </Link>
+
+          <button
+            onClick={toggleTheme}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              isLanding ? "text-primary-foreground/70 hover:text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
 
           <button
             onClick={() => setLanguage(language === "en" ? "mn" : "en")}
@@ -137,6 +148,13 @@ const Navbar: React.FC = () => {
           <Link to="/explore" className="flex items-center gap-2 text-sm font-medium py-2" onClick={() => setMobileOpen(false)}>
             <Compass className="h-4 w-4" /> Аймгууд
           </Link>
+          <button
+            onClick={() => { toggleTheme(); }}
+            className="flex items-center gap-1.5 text-sm text-muted-foreground py-2"
+          >
+            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            {theme === "dark" ? "Light mode" : "Dark mode"}
+          </button>
           <button
             onClick={() => { setLanguage(language === "en" ? "mn" : "en"); setMobileOpen(false); }}
             className="flex items-center gap-1.5 text-sm text-muted-foreground py-2"
