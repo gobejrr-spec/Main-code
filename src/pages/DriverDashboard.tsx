@@ -528,7 +528,7 @@ const DriverDashboard: React.FC = () => {
               </div>
               <div className="space-y-2">
                 <Label>{t("priceAuto")}</Label>
-                <Input type="number" placeholder="25000" value={tripPrice} onChange={(e) => setTripPrice(e.target.value)} />
+                <Input type="number" placeholder="25000" value={tripPrice} readOnly className="bg-muted/50 cursor-not-allowed" />
                 {tripFrom && tripTo && getDistanceKm(tripFrom, tripTo) && (
                   <p className="text-xs text-muted-foreground">
                     {getDistanceKm(tripFrom, tripTo)} км × {pricePerKm}₮/км
