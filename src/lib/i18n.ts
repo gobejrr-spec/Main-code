@@ -14,7 +14,7 @@ export const translations = {
     myTripsNav: "My Trips",
 
     // Landing
-    heroTitle: "Travel Across Mongolia",
+    heroTitle: "Travel Across|Mongolia",
     heroSubtitle: "Connect with trusted rural drivers for safe, affordable rides between cities and countryside",
     searchNow: "Search Trips",
     howItWorks: "How It Works",
