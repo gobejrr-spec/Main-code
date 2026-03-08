@@ -10,6 +10,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { toast } from "sonner";
 import LocationSelect from "@/components/LocationSelect";
+import { getDistanceKm } from "@/lib/distance";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel
 } from "@/components/ui/select";
@@ -89,6 +90,7 @@ const DriverDashboard: React.FC = () => {
   const [tripSeats, setTripSeats] = useState("");
   const [tripPrice, setTripPrice] = useState("");
   const [carType, setCarType] = useState("");
+  const [pricePerKm, setPricePerKm] = useState<number>(150);
 
   // Driver document fields
   const [selectedBrand, setSelectedBrand] = useState("");
