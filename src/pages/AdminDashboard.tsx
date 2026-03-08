@@ -168,6 +168,28 @@ const AdminDashboard: React.FC = () => {
       });
       setComplaints(complaintsList);
 
+      // Fetch bookings
+      const bookingsSnapshot = await getDocs(collection(db, "bookings"));
+      const tripMap = new Map(tripsSnapshot.docs.map(t => [t.id, t.data()]));
+      const bookingsList: BookingRecord[] = bookingsSnapshot.docs.map(bDoc => {
+        const bData = bDoc.data();
+        const tripData = tripMap.get(bData.tripId);
+        return {
+          id: bDoc.id,
+          userId: bData.userId,
+          tripId: bData.tripId,
+          passengerName: bData.passengerName || "",
+          passengerPhone: bData.passengerPhone || "",
+          seats: bData.seats || 1,
+          status: bData.status || "pending",
+          createdAt: bData.createdAt,
+          tripFrom: tripData?.from || "",
+          tripTo: tripData?.to || "",
+          tripDate: tripData?.date || "",
+        };
+      });
+      setAllBookings(bookingsList);
+
       try {
         const settingsDoc = await getDoc(doc(db, "settings", "platform"));
         if (settingsDoc.exists()) {
