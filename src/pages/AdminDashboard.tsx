@@ -354,7 +354,6 @@ const AdminDashboard: React.FC = () => {
     { key: "pendingtrips" as const, label: t("pendingTripsTab"), icon: Clock, count: pendingTrips.length },
     { key: "alltrips" as const, label: t("allTripsTab"), icon: MapPin, count: allTrips.length },
     { key: "complaints" as const, label: t("complaintsTab"), icon: MessageSquare, count: complaints.length },
-    { key: "aimags" as const, label: t("aimagsTab"), icon: Compass, count: 0 },
     { key: "settings" as const, label: t("settingsTab"), icon: Settings, count: 0 },
   ];
 
