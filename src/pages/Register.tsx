@@ -155,8 +155,7 @@ const Register: React.FC = () => {
       // Save user profile to Firestore
       await setDoc(doc(db, "users", cred.user.uid), {
         name: form.name,
-        ...(form.role === "driver" ? { lastName: form.lastName } : {}),
-        registerNo: form.registerNo,
+        ...(form.role === "driver" ? { lastName: form.lastName, registerNo: form.registerNo } : {}),
         phone: form.phone,
         role: form.role,
         language,
@@ -270,21 +269,23 @@ const Register: React.FC = () => {
               </div>
             )}
 
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Регистрийн дугаар</Label>
-              <Input
-                value={form.registerNo}
-                onChange={(e) => {
-                  const val = e.target.value.toUpperCase().slice(0, 10);
-                  update("registerNo", val);
-                }}
-                required
-                className="h-11"
-                placeholder="УБ12345678"
-                maxLength={10}
-              />
-              <p className="text-xs text-muted-foreground">2 кирилл үсэг + 8 тоо</p>
-            </div>
+            {form.role === "driver" && (
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Регистрийн дугаар</Label>
+                <Input
+                  value={form.registerNo}
+                  onChange={(e) => {
+                    const val = e.target.value.toUpperCase().slice(0, 10);
+                    update("registerNo", val);
+                  }}
+                  required
+                  className="h-11"
+                  placeholder="УБ12345678"
+                  maxLength={10}
+                />
+                <p className="text-xs text-muted-foreground">2 кирилл үсэг + 8 тоо</p>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
