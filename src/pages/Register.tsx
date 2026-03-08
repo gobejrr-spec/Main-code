@@ -24,7 +24,7 @@ const Register: React.FC = () => {
   const [form, setForm] = useState({
     name: "",
     lastName: "",
-    registerNo: "",
+    plateNo: "",
     email: "",
     phone: "",
     password: "",
@@ -82,12 +82,12 @@ const Register: React.FC = () => {
       toast.error("Бүх талбарыг бөглөнө үү");
       return;
     }
-    if (form.role === "driver" && (!form.lastName || !form.registerNo)) {
-      toast.error("Овог болон регистрийн дугаар бөглөнө үү");
+    if (form.role === "driver" && (!form.lastName || !form.plateNo)) {
+      toast.error("Овог болон улсын дугаар бөглөнө үү");
       return;
     }
-    if (form.role === "driver" && !/^[А-ЯӨҮЁа-яөүё]{2}\d{8}$/.test(form.registerNo)) {
-      toast.error("Регистрийн дугаар буруу байна (жишээ: АА00000000)");
+    if (form.role === "driver" && !/^\d{4}[А-ЯӨҮЁа-яөүё]{3}$/.test(form.plateNo)) {
+      toast.error("Улсын дугаар буруу байна (жишээ: 8332УБА)");
       return;
     }
     if (form.password !== form.confirmPassword) {
@@ -158,7 +158,7 @@ const Register: React.FC = () => {
       // Save user profile to Firestore
       await setDoc(doc(db, "users", cred.user.uid), {
         name: form.name,
-        ...(form.role === "driver" ? { lastName: form.lastName, registerNo: form.registerNo } : {}),
+        ...(form.role === "driver" ? { lastName: form.lastName, plateNo: form.plateNo } : {}),
         phone: form.phone,
         role: form.role,
         language,
@@ -269,22 +269,22 @@ const Register: React.FC = () => {
 
             {form.role === "driver" && (
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Регистрийн дугаар</Label>
+                <Label className="text-sm font-medium">Улсын дугаар</Label>
                 <Input
-                  value={form.registerNo}
+                  value={form.plateNo}
                   onChange={(e) => {
                     let val = e.target.value;
-                    // First 2 chars: cyrillic only (auto uppercase), rest: digits only
-                    const letters = val.slice(0, 2).replace(/[^А-ЯӨҮЁа-яөүё]/g, "").toUpperCase();
-                    const digits = val.slice(2).replace(/\D/g, "").slice(0, 8);
-                    update("registerNo", letters + digits);
+                    // First 4 chars: digits only, next 3: cyrillic only (auto uppercase)
+                    const digits = val.slice(0, 4).replace(/\D/g, "");
+                    const letters = val.slice(4).replace(/[^А-ЯӨҮЁа-яөүё]/g, "").toUpperCase().slice(0, 3);
+                    update("plateNo", digits + letters);
                   }}
                   required
                   className="h-11 uppercase"
-                  placeholder="АА00000000"
-                  maxLength={10}
+                  placeholder="8332УБА"
+                  maxLength={7}
                 />
-                <p className="text-[11px] text-muted-foreground">2 кирилл үсэг + 8 тоо</p>
+                <p className="text-[11px] text-muted-foreground">4 тоо + 3 кирилл үсэг</p>
               </div>
             )}
 
