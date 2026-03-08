@@ -79,7 +79,7 @@ const AdminDashboard: React.FC = () => {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"users" | "drivers" | "alltrips" | "pendingtrips" | "complaints">("users");
   const [expandedDriver, setExpandedDriver] = useState<string | null>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; type: "user" | "driver" } | null>(null);
   const [photoModal, setPhotoModal] = useState<{ url: string; label: string } | null>(null);
 
   const fetchData = useCallback(async () => {
@@ -704,9 +704,9 @@ const AdminDashboard: React.FC = () => {
       <Dialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Хэрэглэгч устгах</DialogTitle>
+            <DialogTitle>{deleteConfirm?.type === "driver" ? "Жолоочийн бүртгэл устгах" : "Хэрэглэгч устгах"}</DialogTitle>
             <DialogDescription>
-              "{deleteConfirm?.name}" хэрэглэгчийг устгахдаа итгэлтэй байна уу? Энэ үйлдлийг буцаах боломжгүй.
+              "{deleteConfirm?.name}" {deleteConfirm?.type === "driver" ? "жолоочийн бүртгэлийг" : "хэрэглэгчийг"} устгахдаа итгэлтэй байна уу? Энэ үйлдлийг буцаах боломжгүй.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -714,7 +714,7 @@ const AdminDashboard: React.FC = () => {
             <Button
               variant="destructive"
               disabled={actionLoading === deleteConfirm?.id}
-              onClick={() => deleteConfirm && handleDeleteUser(deleteConfirm.id)}
+              onClick={() => deleteConfirm && (deleteConfirm.type === "driver" ? handleDeleteDriver(deleteConfirm.id) : handleDeleteUser(deleteConfirm.id))}
             >
               {actionLoading === deleteConfirm?.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
               Устгах
