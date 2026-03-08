@@ -7,7 +7,9 @@ import { db } from "@/lib/firebase";
 import { MapPin, Calendar, Clock, Users, User, Car, ArrowLeft, Shield, Loader2, Phone, CreditCard, FileText, Navigation } from "lucide-react";
 import { getDistanceKm } from "@/lib/distance";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import monpayQr from "@/assets/monpay-qr.png";
 
 interface TripData {
   driverId: string;
@@ -40,6 +42,7 @@ const TripDetails: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [bookedSeats, setBookedSeats] = useState(0);
   const [booking, setBooking] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
   const [pricePerKm, setPricePerKm] = useState<number>(150);
 
   useEffect(() => {
@@ -90,7 +93,7 @@ const TripDetails: React.FC = () => {
 
   const remainingSeats = trip ? trip.seats - bookedSeats : 0;
 
-  const handleBook = async () => {
+  const handleBook = () => {
     if (!user) {
       toast.info(t("loginRequired"));
       navigate("/login");
@@ -100,6 +103,11 @@ const TripDetails: React.FC = () => {
       toast.error(t("seatsFulled"));
       return;
     }
+    setShowPayment(true);
+  };
+
+  const handleConfirmPayment = async () => {
+    if (!user) return;
     setBooking(true);
     try {
       const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -107,13 +115,14 @@ const TripDetails: React.FC = () => {
       await addDoc(collection(db, "bookings"), {
         userId: user.uid,
         tripId: id,
-        passengerName: userData.name || t("passenger"),
+        passengerName: userData.name || t("passengerName"),
         passengerPhone: userData.phone || "",
         seats: 1,
-        status: "confirmed",
+        status: "pending",
         createdAt: serverTimestamp(),
       });
-      toast.success(t("bookingSuccess"));
+      setShowPayment(false);
+      toast.success(t("paymentPendingMsg"));
       setBookedSeats((prev) => prev + 1);
     } catch (err) {
       console.error("Booking error:", err);
