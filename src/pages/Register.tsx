@@ -156,6 +156,7 @@ const Register: React.FC = () => {
       await setDoc(doc(db, "users", cred.user.uid), {
         name: form.name,
         ...(form.role === "driver" ? { lastName: form.lastName } : {}),
+        registerNo: form.registerNo,
         phone: form.phone,
         role: form.role,
         language,
