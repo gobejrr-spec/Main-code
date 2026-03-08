@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { MapPin, Calendar, Clock, Users, Plus, Upload, Shield, AlertCircle, Loader2, CheckCircle, Lock, X, Image, ChevronDown, Hourglass } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { collection, query, where, getDocs, addDoc, serverTimestamp, doc, getDoc, setDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, addDoc, serverTimestamp, doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { toast } from "sonner";
@@ -135,6 +135,29 @@ const DriverDashboard: React.FC = () => {
       }
     };
     fetchData();
+  }, [user]);
+
+  // Real-time listener for verification status changes
+  useEffect(() => {
+    if (!user) return;
+    const unsubscribe = onSnapshot(doc(db, "drivers", user.uid), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const newStatus = data.verificationStatus || "pending";
+        setVerificationStatus(newStatus);
+        if (data.vehiclePlate) setVehiclePlate(data.vehiclePlate);
+        if (data.licenseNumber) setLicenseNumber(data.licenseNumber);
+        if (data.vehicleType) {
+          const parts = data.vehicleType.split(" ");
+          if (parts.length >= 2) {
+            setSelectedBrand(parts[0]);
+            setSelectedModel(parts.slice(1).join(" "));
+          }
+        }
+        if (data.photos) setPhotoUrls(data.photos);
+      }
+    });
+    return () => unsubscribe();
   }, [user]);
 
   const isVerified = verificationStatus === "approved";
