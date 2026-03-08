@@ -152,6 +152,16 @@ const AdminDashboard: React.FC = () => {
         };
       });
       setComplaints(complaintsList);
+
+      // Fetch settings
+      try {
+        const settingsDoc = await getDoc(doc(db, "settings", "platform"));
+        if (settingsDoc.exists()) {
+          setPricePerKm(settingsDoc.data().pricePerKm || 150);
+        }
+      } catch (e) {
+        console.warn("Settings fetch error:", e);
+      }
     } catch (err) {
       console.error("Admin fetch error:", err);
     } finally {
@@ -282,7 +292,21 @@ const AdminDashboard: React.FC = () => {
     { key: "pendingtrips" as const, label: "Хүлээгдэж буй аялал", icon: Clock, count: pendingTrips.length },
     { key: "alltrips" as const, label: "Бүх аялал", icon: MapPin, count: allTrips.length },
     { key: "complaints" as const, label: "Гомдлууд", icon: MessageSquare, count: complaints.length },
+    { key: "settings" as const, label: "Тохиргоо", icon: Settings, count: 0 },
   ];
+
+  const handleSaveSettings = async () => {
+    setSavingSettings(true);
+    try {
+      await setDoc(doc(db, "settings", "platform"), { pricePerKm }, { merge: true });
+      toast.success("Тохиргоо хадгалагдлаа!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Тохиргоо хадгалах амжилтгүй");
+    } finally {
+      setSavingSettings(false);
+    }
+  };
 
   const statusBadge = (status: string) => {
     const map: Record<string, string> = {
