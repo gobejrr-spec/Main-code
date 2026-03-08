@@ -386,57 +386,57 @@ const DriverDashboard: React.FC = () => {
                 </div>
               </div>
 
-              {/* Photo uploads - only show when all fields are filled */}
-              {selectedBrand && selectedModel && plateNumber.length >= 7 && licenseNumber.length >= 1 && (
-                <>
-                  <h3 className="font-medium text-sm mb-3">Зургууд байршуулах</h3>
-                  <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-3">
-                    {PHOTO_LABELS.map(({ key, label }) => {
-                      const preview = photos[key] ? URL.createObjectURL(photos[key]!) : photoUrls[key];
-                      return (
-                        <div key={key} className="space-y-1">
-                          <div
-                            className="relative border-2 border-dashed border-border rounded-xl overflow-hidden hover:border-primary/50 transition-colors cursor-pointer group aspect-[4/3]"
-                            onClick={() => fileInputRefs.current[key]?.click()}
-                          >
-                            <input
-                              ref={el => { fileInputRefs.current[key] = el; }}
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={e => handlePhotoSelect(key, e.target.files?.[0] || null)}
-                            />
-                            {preview ? (
-                              <>
-                                <img src={preview} alt={label} className="w-full h-full object-cover" />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                  <Upload className="h-5 w-5 text-white" />
-                                </div>
-                                <button
-                                  className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    removePhoto(key);
-                                  }}
-                                >
-                                  <X className="h-3 w-3" />
-                                </button>
-                              </>
-                            ) : (
-                              <div className="flex flex-col items-center justify-center h-full p-3">
-                                <Image className="h-5 w-5 text-muted-foreground mb-1 group-hover:text-primary transition-colors" />
-                                <p className="text-[10px] text-muted-foreground text-center leading-tight">{label}</p>
-                              </div>
-                            )}
+              {/* Photo uploads */}
+              <h3 className="font-medium text-sm mb-3">Зургууд байршуулах</h3>
+              <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-3">
+                {PHOTO_LABELS.map(({ key, label }) => {
+                  const preview = photos[key] ? URL.createObjectURL(photos[key]!) : photoUrls[key];
+                  return (
+                    <div key={key} className="space-y-1">
+                      <div
+                        className="relative border-2 border-dashed border-border rounded-xl overflow-hidden hover:border-primary/50 transition-colors cursor-pointer group aspect-[4/3]"
+                        onClick={() => fileInputRefs.current[key]?.click()}
+                      >
+                        <input
+                          ref={el => { fileInputRefs.current[key] = el; }}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={e => handlePhotoSelect(key, e.target.files?.[0] || null)}
+                        />
+                        {preview ? (
+                          <>
+                            <img src={preview} alt={label} className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <Upload className="h-5 w-5 text-white" />
+                            </div>
+                            <button
+                              className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removePhoto(key);
+                              }}
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center h-full p-3">
+                            <Image className="h-5 w-5 text-muted-foreground mb-1 group-hover:text-primary transition-colors" />
+                            <p className="text-[10px] text-muted-foreground text-center leading-tight">{label}</p>
                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </>
-              )}
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
 
-              <Button className="mt-5" onClick={handleSubmitVerification} disabled={uploadingDocs}>
+              <Button
+                className="mt-5"
+                onClick={handleSubmitVerification}
+                disabled={uploadingDocs || !selectedBrand || !selectedModel || plateNumber.length < 7 || !licenseNumber}
+              >
                 {uploadingDocs ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
                 Илгээх
               </Button>
