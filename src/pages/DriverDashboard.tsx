@@ -113,7 +113,8 @@ const DriverDashboard: React.FC = () => {
         const driverDoc = await getDoc(doc(db, "drivers", user.uid));
         if (driverDoc.exists()) {
           const data = driverDoc.data();
-          setVerificationStatus(data.verificationStatus || "pending");
+          setVerificationStatus(data.verificationStatus || "none");
+          setHasSubmitted(true);
           setVehiclePlate(data.vehiclePlate || "");
           setLicenseNumber(data.licenseNumber || "");
           setDriverEmail(data.email || "");
