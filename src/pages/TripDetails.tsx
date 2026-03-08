@@ -309,11 +309,69 @@ const TripDetails: React.FC = () => {
             ) : remainingSeats <= 0 ? (
               t("seatsFulled")
             ) : (
-              <>{t("bookAction")} — {trip.price.toLocaleString()}₮</>
+              <>{t("bookAction")} — {calculatedPrice ? `${calculatedPrice.toLocaleString()}₮` : `${trip.price.toLocaleString()}₮`}</>
             )}
           </Button>
         </div>
       </div>
+
+      {/* Payment QR Dialog */}
+      <Dialog open={showPayment} onOpenChange={setShowPayment}>
+        <DialogContent className="max-w-sm mx-auto">
+          <DialogHeader>
+            <DialogTitle className="text-center">{t("paymentTitle")}</DialogTitle>
+            <DialogDescription className="text-center">{t("paymentDesc")}</DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Recipient */}
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/40">
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                <User className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="font-semibold text-sm">Э.МӨНГӨНЦЭЦЭГ</p>
+                <p className="text-xs text-primary font-medium">88744721</p>
+              </div>
+            </div>
+
+            {/* Amount */}
+            <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 text-center">
+              <p className="text-xs text-muted-foreground">{t("paymentAmount")}</p>
+              <p className="text-2xl font-bold text-primary">
+                {calculatedPrice ? `${calculatedPrice.toLocaleString()}₮` : `${trip.price.toLocaleString()}₮`}
+              </p>
+            </div>
+
+            {/* QR Code */}
+            <div className="flex justify-center p-4 bg-background rounded-xl border border-border">
+              <img src={monpayQr} alt="MonPay QR" className="w-52 h-52 object-contain" />
+            </div>
+
+            {/* Account Info */}
+            <div className="space-y-2 text-center">
+              <div>
+                <p className="text-xs text-muted-foreground">{t("ibanAccount")}</p>
+                <p className="text-sm font-mono font-medium text-primary">MN81 0050 0991 0762 6169</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">{t("monpayAccount")}</p>
+                <p className="text-sm font-mono font-medium">9910 7626 169</p>
+              </div>
+            </div>
+
+            {/* Confirm Button */}
+            <Button
+              className="w-full h-12 font-semibold rounded-xl"
+              onClick={handleConfirmPayment}
+              disabled={booking}
+            >
+              {booking ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
+              {t("iHavePaid")}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
