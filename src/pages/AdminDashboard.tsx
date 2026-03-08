@@ -210,7 +210,7 @@ const AdminDashboard: React.FC = () => {
       const driver = allDrivers.find(d => d.id === driverId);
       await deleteDoc(doc(db, "drivers", driverId));
       if (driver) {
-        await updateDoc(doc(db, "users", driver.userId), { role: "passenger" });
+        await setDoc(doc(db, "users", driver.userId), { role: "passenger" }, { merge: true });
         setAllUsers(prev => prev.map(u => u.id === driver.userId ? { ...u, role: "passenger" } : u));
       }
       setAllDrivers(prev => prev.filter(d => d.id !== driverId));
