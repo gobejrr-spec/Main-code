@@ -242,7 +242,7 @@ const DriverDashboard: React.FC = () => {
         driverId: user.uid,
         driverName: profile?.name || "Unknown",
         driverPhone: profile?.phone || "",
-        carType: carType,
+        carType: vehicleType || carType || "",
         from: tripFrom,
         to: tripTo,
         date: tripDate,
