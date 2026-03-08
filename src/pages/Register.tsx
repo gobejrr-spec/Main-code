@@ -61,9 +61,13 @@ const Register: React.FC = () => {
       }
       window.recaptchaVerifier = undefined as any;
     }
-    // Clear the container's innerHTML to avoid "already rendered" error
-    const container = document.getElementById("recaptcha-container");
-    if (container) container.innerHTML = "";
+    // Replace the container element entirely to reset Google's internal state
+    const oldContainer = document.getElementById("recaptcha-container");
+    if (oldContainer && oldContainer.parentNode) {
+      const newContainer = document.createElement("div");
+      newContainer.id = "recaptcha-container";
+      oldContainer.parentNode.replaceChild(newContainer, oldContainer);
+    }
 
     window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
       size: "invisible",
