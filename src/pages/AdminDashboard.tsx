@@ -8,7 +8,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import {
   Users, Car, MapPin, CheckCircle, Shield, AlertTriangle, MessageSquare,
   Loader2, Trash2, Eye, Clock, UserPlus, XCircle, Ban, RefreshCw,
-  Phone, Mail, FileText, ChevronDown, ChevronUp, Image, Settings, Save
+  Phone, Mail, FileText, ChevronDown, ChevronUp, Image, Settings, Save, CreditCard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
