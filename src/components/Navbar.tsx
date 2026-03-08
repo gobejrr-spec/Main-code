@@ -47,7 +47,9 @@ const Navbar: React.FC = () => {
         {/* Desktop */}
         <div className="hidden md:flex items-center gap-1">
           <Link to="/" className={`${navLinkClass} px-3 py-2 rounded-lg`}>{t("home")}</Link>
-          <Link to="/trips" className={`${navLinkClass} px-3 py-2 rounded-lg`}>{t("searchTrips")}</Link>
+          <Link to="/trips" className={`${navLinkClass} px-3 py-2 rounded-lg`}>
+            {profile?.role === "driver" ? "Миний аялалууд" : t("searchTrips")}
+          </Link>
           <Link to="/explore" className={`${navLinkClass} px-3 py-2 rounded-lg flex items-center gap-1`}>
             <Compass className="h-3.5 w-3.5" />
             Аймгууд
@@ -129,7 +131,9 @@ const Navbar: React.FC = () => {
       {mobileOpen && (
         <div className="md:hidden bg-card border-t border-border px-4 py-5 space-y-3 animate-fade-in shadow-lg">
           <Link to="/" className="block text-sm font-medium py-2" onClick={() => setMobileOpen(false)}>{t("home")}</Link>
-          <Link to="/trips" className="block text-sm font-medium py-2" onClick={() => setMobileOpen(false)}>{t("searchTrips")}</Link>
+          <Link to="/trips" className="block text-sm font-medium py-2" onClick={() => setMobileOpen(false)}>
+            {profile?.role === "driver" ? "Миний аялалууд" : t("searchTrips")}
+          </Link>
           <Link to="/explore" className="flex items-center gap-2 text-sm font-medium py-2" onClick={() => setMobileOpen(false)}>
             <Compass className="h-4 w-4" /> Аймгууд
           </Link>
