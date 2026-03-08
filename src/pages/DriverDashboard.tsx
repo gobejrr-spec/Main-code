@@ -145,7 +145,8 @@ const DriverDashboard: React.FC = () => {
     const unsubscribe = onSnapshot(doc(db, "drivers", user.uid), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        const newStatus = data.verificationStatus || "pending";
+        const newStatus = data.verificationStatus || "none";
+        setHasSubmitted(true);
         setVerificationStatus(newStatus);
         if (data.vehiclePlate) setVehiclePlate(data.vehiclePlate);
         if (data.licenseNumber) setLicenseNumber(data.licenseNumber);
