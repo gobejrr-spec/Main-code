@@ -138,7 +138,7 @@ const DriverDashboard: React.FC = () => {
   }, [user]);
 
   const isVerified = verificationStatus === "approved";
-  const isPending = verificationStatus === "pending" && (Object.keys(photoUrls).length > 0 || vehicleType || licenseNumber);
+  const isPending = verificationStatus === "pending" && (Object.keys(photoUrls).length > 0 || (selectedBrand && selectedModel) || licenseNumber);
   const isRejected = verificationStatus === "rejected";
   const needsSubmission = !isVerified && !isPending;
   const vehicleType = selectedBrand && selectedModel ? `${selectedBrand} ${selectedModel}` : "";
