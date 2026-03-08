@@ -476,55 +476,57 @@ const DriverDashboard: React.FC = () => {
           </div>
         )}
 
-        {/* Trip List */}
-        {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : trips.length === 0 ? (
-          <div className="text-center py-16 animate-fade-in">
-            <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-              <MapPin className="h-8 w-8 text-muted-foreground/40" />
-            </div>
-            <p className="text-muted-foreground font-medium">Аялал байхгүй байна</p>
-            <p className="text-sm text-muted-foreground/70 mt-1">
-              {isVerified ? "Шинэ аялал үүсгэж эхлээрэй" : "Баталгаажуулалтаа хийснийх дараа аялал оруулж болно"}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3 animate-stagger">
-            {trips.map((trip) => (
-              <div key={trip.id} className="glass-card-elevated rounded-2xl p-5 flex items-center justify-between hover-lift">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <MapPin className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1 text-sm font-medium">
-                      {trip.from} → {trip.to}
-                    </div>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
-                      <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {trip.date}</span>
-                      <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {trip.time}</span>
-                      <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {trip.seats} суудал</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-heading font-bold text-primary">{trip.price?.toLocaleString()}₮</p>
-                  <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-                    trip.status === "approved"
-                      ? "bg-success/10 text-success"
-                      : trip.status === "rejected"
-                      ? "bg-destructive/10 text-destructive"
-                      : "bg-warning/10 text-warning"
-                  }`}>
-                    {trip.status === "approved" ? "Зөвшөөрсөн" : trip.status === "rejected" ? "Татгалзсан" : "Хүлээгдэж буй"}
-                  </span>
-                </div>
+        {/* Trip List - only when verified */}
+        {isVerified && (
+          <>
+            {loading ? (
+              <div className="flex items-center justify-center py-16">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
-            ))}
-          </div>
+            ) : trips.length === 0 ? (
+              <div className="text-center py-16 animate-fade-in">
+                <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
+                  <MapPin className="h-8 w-8 text-muted-foreground/40" />
+                </div>
+                <p className="text-muted-foreground font-medium">Аялал байхгүй байна</p>
+                <p className="text-sm text-muted-foreground/70 mt-1">Шинэ аялал үүсгэж эхлээрэй</p>
+              </div>
+            ) : (
+              <div className="space-y-3 animate-stagger">
+                {trips.map((trip) => (
+                  <div key={trip.id} className="glass-card-elevated rounded-2xl p-5 flex items-center justify-between hover-lift">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <MapPin className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1 text-sm font-medium">
+                          {trip.from} → {trip.to}
+                        </div>
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                          <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {trip.date}</span>
+                          <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {trip.time}</span>
+                          <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {trip.seats} суудал</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-heading font-bold text-primary">{trip.price?.toLocaleString()}₮</p>
+                      <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
+                        trip.status === "approved"
+                          ? "bg-success/10 text-success"
+                          : trip.status === "rejected"
+                          ? "bg-destructive/10 text-destructive"
+                          : "bg-warning/10 text-warning"
+                      }`}>
+                        {trip.status === "approved" ? "Зөвшөөрсөн" : trip.status === "rejected" ? "Татгалзсан" : "Хүлээгдэж буй"}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
