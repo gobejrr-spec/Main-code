@@ -317,13 +317,13 @@ const Trips: React.FC = () => {
           <p className="text-center text-muted-foreground mb-8 animate-fade-in" style={{ animationDelay: "100ms" }}>
             {t("searchTripsAcross")}
           </p>
-          <div className="glass-card-elevated rounded-2xl p-5 max-w-3xl mx-auto animate-fade-in" style={{ animationDelay: "200ms" }}>
-            <div className="grid sm:grid-cols-4 gap-3">
+          <div className="glass-card-elevated rounded-2xl p-5 max-w-3xl mx-auto animate-fade-in overflow-hidden" style={{ animationDelay: "200ms" }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <LocationSelect value={searchFrom} onChange={setSearchFrom} placeholder={t("from")} iconColor="text-primary" />
               <LocationSelect value={searchTo} onChange={setSearchTo} placeholder={t("to")} iconColor="text-accent" />
-              <div className="relative">
+              <div className="relative min-w-0">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input type="date" className="pl-9 h-11" value={searchDate} onChange={(e) => setSearchDate(e.target.value)} />
+                <Input type="date" className="pl-9 h-11 w-full" value={searchDate} onChange={(e) => setSearchDate(e.target.value)} />
               </div>
               <Button className="w-full h-11 glow-primary">
                 <Search className="mr-2 h-4 w-4" />

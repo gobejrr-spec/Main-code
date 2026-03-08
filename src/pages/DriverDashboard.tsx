@@ -479,7 +479,7 @@ const DriverDashboard: React.FC = () => {
         {showCreateTrip && isVerified && (
           <div className="glass-card-elevated rounded-2xl p-6 mb-6 animate-fade-in">
             <h3 className="font-heading font-semibold mb-4">{t("newTrip")}</h3>
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t("fromSelect")}</Label>
                 <LocationSelect value={tripFrom} onChange={setTripFrom} placeholder={t("selectProvince")} iconColor="text-primary" />
@@ -488,13 +488,13 @@ const DriverDashboard: React.FC = () => {
                 <Label>{t("toSelect")}</Label>
                 <LocationSelect value={tripTo} onChange={setTripTo} placeholder={t("selectProvince")} iconColor="text-accent" />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 min-w-0">
                 <Label>{t("dateInput")}</Label>
-                <Input type="date" value={tripDate} onChange={(e) => setTripDate(e.target.value)} />
+                <Input type="date" className="w-full" value={tripDate} onChange={(e) => setTripDate(e.target.value)} />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 min-w-0">
                 <Label>{t("timeInput")}</Label>
-                <Input type="time" value={tripTime} onChange={(e) => setTripTime(e.target.value)} />
+                <Input type="time" className="w-full" value={tripTime} onChange={(e) => setTripTime(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label>{t("seatCount")}</Label>
