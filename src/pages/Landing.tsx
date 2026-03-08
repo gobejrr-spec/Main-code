@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Search, MapPin, Shield, ArrowRight, Car, Users, Clock, Star, Sparkles, Loader2, CheckCircle, Phone, CreditCard, Compass, Route, Zap } from "lucide-react";
@@ -12,10 +12,21 @@ import { db } from "@/lib/firebase";
 
 const Landing: React.FC = () => {
   const { t } = useLanguage();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { theme } = useTheme();
+  const navigate = useNavigate();
   const [stats, setStats] = useState({ users: 0, drivers: 0 });
   const [statsLoaded, setStatsLoaded] = useState(false);
+
+  useEffect(() => {
+    if (user && profile) {
+      switch (profile.role) {
+        case "admin": navigate("/admin", { replace: true }); break;
+        case "driver": navigate("/driver", { replace: true }); break;
+        default: navigate("/passenger", { replace: true }); break;
+      }
+    }
+  }, [user, profile, navigate]);
 
   useEffect(() => {
     const fetchStats = async () => {
