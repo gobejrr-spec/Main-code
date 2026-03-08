@@ -147,6 +147,7 @@ const TripDetails: React.FC = () => {
   }
 
   const distanceKm = trip ? getDistanceKm(trip.from, trip.to) : null;
+  const calculatedPrice = distanceKm ? distanceKm * pricePerKm : null;
 
   return (
     <div className="min-h-screen bg-background pt-20 pb-10">
