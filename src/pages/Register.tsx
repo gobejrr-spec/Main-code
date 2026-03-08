@@ -273,14 +273,14 @@ const Register: React.FC = () => {
                 <Input
                   value={form.registerNo}
                   onChange={(e) => {
-                    let val = e.target.value.toUpperCase();
-                    // First 2 chars: cyrillic only, rest: digits only
+                    let val = e.target.value;
+                    // First 2 chars: cyrillic only (auto uppercase), rest: digits only
                     const letters = val.slice(0, 2).replace(/[^А-ЯӨҮЁа-яөүё]/g, "").toUpperCase();
                     const digits = val.slice(2).replace(/\D/g, "").slice(0, 8);
                     update("registerNo", letters + digits);
                   }}
                   required
-                  className="h-11"
+                  className="h-11 uppercase"
                   placeholder="АА00000000"
                   maxLength={10}
                 />
