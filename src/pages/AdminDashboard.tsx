@@ -28,8 +28,10 @@ interface DriverRecord {
   userId: string;
   verificationStatus: string;
   userName?: string;
+  userLastName?: string;
   userPhone?: string;
   userEmail?: string;
+  userPlateNo?: string;
   vehicleType?: string;
   vehiclePlate?: string;
   licenseNumber?: string;
@@ -109,8 +111,10 @@ const AdminDashboard: React.FC = () => {
           userId: data.userId,
           verificationStatus: data.verificationStatus || "pending",
           userName: userData?.name || "",
+          userLastName: userData?.lastName || "",
           userPhone: userData?.phone || "",
           userEmail: userData?.email || "",
+          userPlateNo: userData?.plateNo || "",
           vehicleType: data.vehicleType || data.carType || "",
           vehiclePlate: data.vehiclePlate || data.plateNumber || "",
           licenseNumber: data.licenseNumber || "",
@@ -415,9 +419,9 @@ const AdminDashboard: React.FC = () => {
                           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                             <Car className="h-5 w-5 text-primary" />
                           </div>
-                          <div>
+                            <div>
                             <div className="flex items-center gap-2">
-                              <p className="font-medium">{d.userName || d.userId}</p>
+                              <p className="font-medium">{d.userLastName ? `${d.userLastName} ${d.userName}` : d.userName || d.userId}</p>
                               {statusBadge(d.verificationStatus)}
                             </div>
                             <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
@@ -459,12 +463,22 @@ const AdminDashboard: React.FC = () => {
                           {/* Document info */}
                           <div className="grid sm:grid-cols-2 gap-3 pt-3 mb-4">
                             <div className="flex items-center gap-2 text-sm">
+                              <Users className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-muted-foreground">Овог нэр:</span>
+                              <span className="font-medium">{d.userLastName ? `${d.userLastName} ${d.userName}` : d.userName || "—"}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <Phone className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-muted-foreground">Утас:</span>
+                              <span className="font-medium">{d.userPhone || "—"}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
                               <FileText className="h-4 w-4 text-muted-foreground" />
                               <span className="text-muted-foreground">Тээврийн хэрэгсэл:</span>
                               <span className="font-medium">{d.vehicleType || "—"}</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm">
-                              <FileText className="h-4 w-4 text-muted-foreground" />
+                              <Car className="h-4 w-4 text-muted-foreground" />
                               <span className="text-muted-foreground">Улсын дугаар:</span>
                               <span className="font-medium">{d.vehiclePlate || "—"}</span>
                             </div>
@@ -478,6 +492,13 @@ const AdminDashboard: React.FC = () => {
                               <span className="text-muted-foreground">Имэйл:</span>
                               <span className="font-medium">{d.email || d.userEmail || "—"}</span>
                             </div>
+                            {d.userPlateNo && (
+                              <div className="flex items-center gap-2 text-sm">
+                                <FileText className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-muted-foreground">Бүртгэлийн улсын дугаар:</span>
+                                <span className="font-medium">{d.userPlateNo}</span>
+                              </div>
+                            )}
                           </div>
 
                           {/* Photos grid */}
