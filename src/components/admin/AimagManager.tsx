@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   collection, getDocs, doc, setDoc, deleteDoc, serverTimestamp,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import { db, storage } from "@/lib/firebase";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AIMAG_DATA, AimagInfo, Attraction } from "@/lib/aimag-data";
 import {
-  MapPin, Plus, Trash2, Edit, Save, X, Loader2, Image, ChevronDown, ChevronUp, Star, Users, Ruler, ArrowLeft,
+  MapPin, Plus, Trash2, Edit, Save, X, Loader2, Image, ChevronDown, ChevronUp, Star, Users, Ruler, ArrowLeft, Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +34,120 @@ const emptyAimag: AimagDoc = {
   attractions: [],
 };
 
+// Image upload component
+const ImageUploader: React.FC<{
+  currentUrl: string;
+  onUrlChange: (url: string) => void;
+  storagePath: string;
+  label: string;
+  aspectClass?: string;
+}> = ({ currentUrl, onUrlChange, storagePath, label, aspectClass = "aspect-[16/7]" }) => {
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Зөвхөн зураг файл оруулна уу");
+      return;
+    }
+    setUploading(true);
+    try {
+      const storageRef = ref(storage, storagePath + "/" + Date.now() + "_" + file.name);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+      onUrlChange(url);
+      toast.success("Зураг амжилттай байршуулагдлаа");
+    } catch (err: any) {
+      console.error("Upload error:", err);
+      toast.error("Зураг байршуулах амжилтгүй: " + (err?.code || err?.message || ""));
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!currentUrl) return;
+    // Try to delete from storage if it's a Firebase URL
+    if (currentUrl.includes("firebasestorage.googleapis.com") || currentUrl.includes("firebasestorage.app")) {
+      try {
+        const storageRef = ref(storage, currentUrl);
+        await deleteObject(storageRef);
+      } catch (err) {
+        console.warn("Storage delete error (may be external URL):", err);
+      }
+    }
+    onUrlChange("");
+    toast.success("Зураг устгагдлаа");
+  };
+
+  return (
+    <div className="space-y-2">
+      <label className="text-sm font-medium">{label}</label>
+      {currentUrl ? (
+        <div className="relative group">
+          <div className={`rounded-xl overflow-hidden border border-border ${aspectClass}`}>
+            <img src={currentUrl} alt={label} className="w-full h-full object-cover" onError={(e) => {
+              (e.target as HTMLImageElement).src = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/480px-No_image_available.svg.png";
+            }} />
+          </div>
+          <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-8 text-xs shadow-lg"
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading}
+            >
+              {uploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <><Upload className="h-3 w-3 mr-1" /> Солих</>}
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              className="h-8 text-xs shadow-lg"
+              onClick={handleDelete}
+            >
+              <Trash2 className="h-3 w-3 mr-1" /> Устгах
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div
+          className={`rounded-xl border-2 border-dashed border-border hover:border-primary/50 transition-colors flex flex-col items-center justify-center cursor-pointer bg-muted/20 ${aspectClass}`}
+          onClick={() => fileRef.current?.click()}
+        >
+          {uploading ? (
+            <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
+          ) : (
+            <>
+              <Image className="h-8 w-8 text-muted-foreground/50 mb-2" />
+              <p className="text-sm text-muted-foreground">Зураг байршуулах</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">эсвэл URL оруулах</p>
+            </>
+          )}
+        </div>
+      )}
+      <div className="flex gap-2">
+        <Input
+          value={currentUrl}
+          onChange={(e) => onUrlChange(e.target.value)}
+          placeholder="https://... эсвэл зураг байршуулах"
+          className="text-xs"
+        />
+      </div>
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleUpload}
+      />
+    </div>
+  );
+};
+
 const AimagManager: React.FC = () => {
   const { t } = useLanguage();
   const [aimags, setAimags] = useState<AimagDoc[]>([]);
@@ -49,7 +164,6 @@ const AimagManager: React.FC = () => {
     try {
       const snap = await getDocs(collection(db, "aimags"));
       if (snap.empty) {
-        // Seed from hardcoded data
         setAimags(AIMAG_DATA.map((a) => ({ ...a, id: a.name })));
       } else {
         setAimags(snap.docs.map((d) => ({ id: d.id, ...d.data() } as AimagDoc)));
@@ -127,7 +241,6 @@ const AimagManager: React.FC = () => {
     }
   };
 
-  // Edit form helpers
   const updateField = (field: keyof AimagDoc, value: any) => {
     if (!editingAimag) return;
     setEditingAimag({ ...editingAimag, [field]: value });
@@ -188,15 +301,9 @@ const AimagManager: React.FC = () => {
 
         <div className="space-y-6 max-w-2xl">
           {/* Basic info */}
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">{t("aimagName")}</label>
-              <Input value={editingAimag.name} onChange={(e) => updateField("name", e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">{t("aimagPhoto")}</label>
-              <Input value={editingAimag.photoUrl} onChange={(e) => updateField("photoUrl", e.target.value)} placeholder="https://..." />
-            </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">{t("aimagName")}</label>
+            <Input value={editingAimag.name} onChange={(e) => updateField("name", e.target.value)} />
           </div>
 
           <div className="space-y-2">
@@ -215,12 +322,14 @@ const AimagManager: React.FC = () => {
             </div>
           </div>
 
-          {/* Photo preview */}
-          {editingAimag.photoUrl && (
-            <div className="rounded-xl overflow-hidden aspect-[16/7] border border-border">
-              <img src={editingAimag.photoUrl} alt={editingAimag.name} className="w-full h-full object-cover" />
-            </div>
-          )}
+          {/* Cover photo upload */}
+          <ImageUploader
+            currentUrl={editingAimag.photoUrl}
+            onUrlChange={(url) => updateField("photoUrl", url)}
+            storagePath={`aimags/${editingAimag.name || "new"}`}
+            label="Ковер зураг"
+            aspectClass="aspect-[16/7]"
+          />
 
           {/* Highlights */}
           <div className="space-y-3">
@@ -272,16 +381,13 @@ const AimagManager: React.FC = () => {
                   placeholder={t("aimagDescription")}
                   rows={2}
                 />
-                <Input
-                  value={attr.photoUrl}
-                  onChange={(e) => updateAttraction(i, "photoUrl", e.target.value)}
-                  placeholder={t("aimagPhoto")}
+                <ImageUploader
+                  currentUrl={attr.photoUrl}
+                  onUrlChange={(url) => updateAttraction(i, "photoUrl", url)}
+                  storagePath={`aimags/${editingAimag.name || "new"}/attractions`}
+                  label={`Газрын зураг #${i + 1}`}
+                  aspectClass="aspect-[16/9] max-w-xs"
                 />
-                {attr.photoUrl && (
-                  <div className="rounded-lg overflow-hidden aspect-[16/9] border border-border max-w-xs">
-                    <img src={attr.photoUrl} alt={attr.name} className="w-full h-full object-cover" />
-                  </div>
-                )}
               </div>
             ))}
           </div>
