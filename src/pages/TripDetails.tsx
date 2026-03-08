@@ -71,6 +71,15 @@ const TripDetails: React.FC = () => {
               console.warn("Could not fetch bookings count:", bookingErr);
               setBookedSeats(0);
             }
+            // Fetch platform settings for price per km
+            try {
+              const settingsDoc = await getDoc(doc(db, "settings", "platform"));
+              if (settingsDoc.exists() && settingsDoc.data().pricePerKm) {
+                setPricePerKm(settingsDoc.data().pricePerKm);
+              }
+            } catch (sErr) {
+              console.warn("Could not fetch settings:", sErr);
+            }
           }
         }
       } catch (err) {
