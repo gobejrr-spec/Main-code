@@ -48,38 +48,38 @@ const Landing: React.FC = () => {
   const steps = [
     {
       icon: Search,
-      title: "Чиглэл хайх",
-      desc: "Аймаг, сумаа сонгоод тохирох аялалыг олоорой",
+      title: t("step1Title"),
+      desc: t("step1Desc"),
       color: "from-primary to-primary-glow",
       step: "01",
     },
     {
       icon: CheckCircle,
-      title: "Жолоочийн мэдээлэл",
-      desc: "Жолоочийн нэр, утас, машин, суудлын мэдээллийг бүрэн харна",
+      title: t("step2Title"),
+      desc: t("step2Desc"),
       color: "from-secondary to-warning",
       step: "02",
     },
     {
       icon: CreditCard,
-      title: "QPay төлбөр",
-      desc: "QPay-ээр 5 минутын дотор төлбөрөө баталгаажуулна",
+      title: t("step3Title"),
+      desc: t("step3Desc"),
       color: "from-accent to-success",
       step: "03",
     },
     {
       icon: Shield,
-      title: "Аюулгүй аялах",
-      desc: "Баталгаажсан жолоочтой уулзаж аялалаа эхлүүлнэ",
+      title: t("step4Title"),
+      desc: t("step4Desc"),
       color: "from-primary to-accent",
       step: "04",
     },
   ];
 
   const features = [
-    { icon: Shield, title: "Баталгаатай жолооч", desc: "Бүх жолооч бичиг баримтаар баталгаажсан" },
-    { icon: Zap, title: "Хурдан захиалга", desc: "Хэдхэн товшилтоор аялалаа захиалаарай" },
-    { icon: Route, title: "21 аймаг", desc: "Монгол даяарх бүх чиглэлд үйлчилнэ" },
+    { icon: Shield, title: t("verifiedDriver"), desc: t("verifiedDriverDesc") },
+    { icon: Zap, title: t("fastBooking"), desc: t("fastBookingDesc") },
+    { icon: Route, title: t("allProvinces"), desc: t("allProvincesDesc") },
   ];
 
   return (
@@ -87,8 +87,8 @@ const Landing: React.FC = () => {
       {/* Hero */}
       <section className="relative min-h-[92vh] flex items-center overflow-hidden">
         <div className="absolute inset-0">
-          <img src={heroImage} alt="Монгол тал" className={`absolute inset-0 w-full h-full object-cover scale-105 transition-opacity duration-500 ${theme === "dark" ? "opacity-0" : "opacity-100"}`} />
-          <img src={heroNightImage} alt="Монгол шөнө" className={`absolute inset-0 w-full h-full object-cover scale-105 transition-opacity duration-500 ${theme === "dark" ? "opacity-100" : "opacity-0"}`} />
+          <img src={heroImage} alt="Mongolia" className={`absolute inset-0 w-full h-full object-cover scale-105 transition-opacity duration-500 ${theme === "dark" ? "opacity-0" : "opacity-100"}`} />
+          <img src={heroNightImage} alt="Mongolia night" className={`absolute inset-0 w-full h-full object-cover scale-105 transition-opacity duration-500 ${theme === "dark" ? "opacity-100" : "opacity-0"}`} />
           <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-black/20" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/10" />
         </div>
@@ -97,7 +97,7 @@ const Landing: React.FC = () => {
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 bg-primary-foreground/10 backdrop-blur-xl text-primary-foreground text-sm font-medium px-5 py-2.5 rounded-full mb-10 animate-fade-in border border-primary-foreground/15">
               <Sparkles className="h-4 w-4 text-warning" />
-              Монголын #1 Хөдөө Тээврийн Платформ
+              {t("platformBadge")}
             </div>
 
             <h1 className="font-heading text-5xl md:text-7xl font-bold text-primary-foreground leading-[1.05] mb-7 animate-fade-in" style={{ animationDelay: "100ms" }}>
@@ -118,7 +118,7 @@ const Landing: React.FC = () => {
               <Button size="lg" variant="outline" className="text-base px-8 py-6 bg-primary-foreground/8 backdrop-blur-xl border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/15 hover-scale rounded-xl" asChild>
                 <Link to="/explore">
                   <Compass className="mr-2 h-5 w-5" />
-                  Аймгууд үзэх
+                  {t("viewProvinces")}
                 </Link>
               </Button>
             </div>
@@ -126,9 +126,9 @@ const Landing: React.FC = () => {
             {/* Stats */}
             <div className="flex items-center gap-10 mt-16 animate-fade-in" style={{ animationDelay: "400ms" }}>
               {[
-                { icon: Users, val: statsLoaded ? `${stats.users}+` : "...", label: "Зорчигч" },
-                { icon: Car, val: statsLoaded ? `${stats.drivers}+` : "...", label: "Жолооч" },
-                { icon: Star, val: "4.8", label: "Үнэлгээ" },
+                { icon: Users, val: statsLoaded ? `${stats.users}+` : "...", label: t("passengers") },
+                { icon: Car, val: statsLoaded ? `${stats.drivers}+` : "...", label: t("drivers") },
+                { icon: Star, val: "4.8", label: t("rating") },
               ].map((s, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <div className="w-11 h-11 rounded-xl bg-primary-foreground/8 backdrop-blur-sm flex items-center justify-center border border-primary-foreground/15">
@@ -182,10 +182,10 @@ const Landing: React.FC = () => {
               {t("howItWorks")}
             </span>
             <h2 className="font-heading text-4xl md:text-5xl font-bold mt-6 leading-tight">
-              Хялбар & <span className="text-gradient">Найдвартай</span>
+              {t("simpleAndReliable").split("&")[0]}& <span className="text-gradient">{t("simpleAndReliable").split("&")[1]?.trim() || ""}</span>
             </h2>
             <p className="text-muted-foreground mt-5 max-w-md mx-auto text-lg">
-              4 алхамаар аюулгүй, хямд аялалаа захиалаарай
+              {t("stepsSubtitle")}
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto animate-stagger">
@@ -218,14 +218,14 @@ const Landing: React.FC = () => {
               <MapPin className="h-10 w-10 text-primary-foreground" />
             </div>
             <h2 className="font-heading text-4xl md:text-5xl font-bold text-primary-foreground mb-6 leading-tight">
-              Одоо бүртгүүлээрэй
+              {t("registerNow")}
             </h2>
             <p className="text-primary-foreground/75 text-lg mb-12 max-w-md mx-auto leading-relaxed">
-              Бүртгүүлж, Монгол даяарх аялалуудыг хайж, захиалаарай
+              {t("registerNowDesc")}
             </p>
             <Button size="lg" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 text-base px-10 py-6 hover-scale rounded-xl shadow-xl" asChild>
               <Link to="/register">
-                Бүртгүүлэх
+                {t("register")}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>

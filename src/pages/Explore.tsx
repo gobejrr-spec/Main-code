@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { AIMAG_DATA, AimagInfo } from "@/lib/aimag-data";
 import { MapPin, Users, Ruler, ArrowLeft, Star, ChevronRight, Search, Compass } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const Explore: React.FC = () => {
+  const { t } = useLanguage();
   const [selected, setSelected] = useState<AimagInfo | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -22,7 +24,7 @@ const Explore: React.FC = () => {
             onClick={() => setSelected(null)}
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6"
           >
-            <ArrowLeft className="h-4 w-4" /> Бүх аймгууд
+            <ArrowLeft className="h-4 w-4" /> {t("allProvincesBack")}
           </button>
 
           <div className="animate-fade-in">
@@ -46,14 +48,14 @@ const Explore: React.FC = () => {
                 <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
                   <Users className="h-5 w-5 text-primary" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Хүн ам</p>
+                    <p className="text-xs text-muted-foreground">{t("population")}</p>
                     <p className="text-sm font-semibold">{selected.population}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
                   <Ruler className="h-5 w-5 text-accent" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Талбай</p>
+                    <p className="text-xs text-muted-foreground">{t("area")}</p>
                     <p className="text-sm font-semibold">{selected.area}</p>
                   </div>
                 </div>
@@ -61,7 +63,7 @@ const Explore: React.FC = () => {
 
               <h2 className="font-heading font-semibold text-lg mb-4 flex items-center gap-2">
                 <Star className="h-5 w-5 text-warning" />
-                Үзэх газрууд
+                {t("attractions")}
               </h2>
 
               {/* Attraction cards with photos */}
@@ -111,7 +113,7 @@ const Explore: React.FC = () => {
                 <Button asChild className="w-full glow-primary">
                   <Link to={`/trips?to=${encodeURIComponent(selected.name)}`}>
                     <MapPin className="mr-2 h-4 w-4" />
-                    {selected.name} руу аялал хайх
+                    {selected.name} {t("searchTripsTo")}
                   </Link>
                 </Button>
               </div>
@@ -131,16 +133,16 @@ const Explore: React.FC = () => {
         <div className="container mx-auto px-4 relative z-10">
           <div className="flex items-center gap-3 mb-2">
             <Compass className="h-8 w-8 text-primary" />
-            <h1 className="font-heading text-4xl font-bold animate-fade-in">Монголын 21 аймаг</h1>
+            <h1 className="font-heading text-4xl font-bold animate-fade-in">{t("mongoliaProvinces")}</h1>
           </div>
           <p className="text-muted-foreground mb-6 animate-fade-in" style={{ animationDelay: "100ms" }}>
-            Аймаг бүрийн онцлог, үзэх газрууд, байгалийн гайхамшгуудтай танилцаарай
+            {t("exploreSubtitle")}
           </p>
           <div className="max-w-md animate-fade-in" style={{ animationDelay: "200ms" }}>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Аймаг хайх..."
+                placeholder={t("searchProvince")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 h-11"
@@ -185,7 +187,7 @@ const Explore: React.FC = () => {
                     <Users className="h-3 w-3" /> {aimag.population}
                   </span>
                   <span className="flex items-center gap-1">
-                    <Star className="h-3 w-3" /> {aimag.highlights.length} газар
+                    <Star className="h-3 w-3" /> {aimag.highlights.length} {t("places")}
                   </span>
                 </div>
               </div>
@@ -196,7 +198,7 @@ const Explore: React.FC = () => {
         {filtered.length === 0 && (
           <div className="text-center py-20">
             <MapPin className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-            <p className="text-muted-foreground">Аймаг олдсонгүй</p>
+            <p className="text-muted-foreground">{t("provinceNotFound")}</p>
           </div>
         )}
       </div>
