@@ -480,10 +480,6 @@ const DriverDashboard: React.FC = () => {
                 <Label>Үнэ (₮)</Label>
                 <Input type="number" placeholder="25000" value={tripPrice} onChange={(e) => setTripPrice(e.target.value)} />
               </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label>Машины төрөл</Label>
-                <Input placeholder="Toyota Prius, Hyundai Starex г.м." value={carType} onChange={(e) => setCarType(e.target.value)} />
-              </div>
             </div>
             <div className="flex gap-3 mt-5">
               <Button onClick={handleCreateTrip} disabled={submitting} className="hover-scale">
