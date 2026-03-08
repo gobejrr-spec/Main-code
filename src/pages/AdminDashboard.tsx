@@ -119,12 +119,23 @@ const AdminDashboard: React.FC = () => {
         getCountFromServer(collection(db, "trips")),
         getCountFromServer(query(collection(db, "trips"), where("status", "==", "completed"))),
       ]);
-      setStats({
+      const fetchedStats = {
         users: usersSnap.data().count,
         drivers: driversSnap.data().count,
         trips: tripsSnap.data().count,
         completed: completedSnap.data().count,
-      });
+      };
+      setStats(fetchedStats);
+
+      // Sync public stats for landing page
+      try {
+        await setDoc(doc(db, "settings", "stats"), {
+          users: fetchedStats.users,
+          drivers: fetchedStats.drivers,
+        });
+      } catch (e) {
+        console.warn("Stats sync error:", e);
+      }
 
       const usersSnapshot = await getDocs(collection(db, "users"));
       setAllUsers(usersSnapshot.docs.map(d => ({ id: d.id, ...d.data() } as UserRecord)));
