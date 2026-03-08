@@ -57,7 +57,7 @@ const PassengerDashboard: React.FC = () => {
             bookingsList.push({ id: bDoc.id, tripId: bData.tripId, status: bData.status });
           }
         }
-        setBookings(bookingsList.filter(b => b.status !== "cancelled"));
+        setBookings(bookingsList.filter(b => b.status !== "cancelled" && b.status !== "rejected"));
       } catch (err) {
         console.error(err);
       } finally {
