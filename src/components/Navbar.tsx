@@ -89,7 +89,7 @@ const Navbar: React.FC = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={logout}
+                onClick={async () => { await logout(); navigate("/"); }}
                 className={isLanding ? "border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10" : ""}
               >
                 {t("logout")}
@@ -149,7 +149,7 @@ const Navbar: React.FC = () => {
                    </Link>
                 )}
                 <Link to={getDashboardPath()} className="block text-sm font-medium py-2" onClick={() => setMobileOpen(false)}>{t("dashboard")}</Link>
-                <button onClick={() => { logout(); setMobileOpen(false); }} className="text-sm text-destructive py-2">{t("logout")}</button>
+                <button onClick={async () => { await logout(); setMobileOpen(false); navigate("/"); }} className="text-sm text-destructive py-2">{t("logout")}</button>
               </>
             ) : (
               <div className="flex gap-3">
