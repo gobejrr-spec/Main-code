@@ -88,8 +88,8 @@ const Trips: React.FC = () => {
         setLoading(false);
       }
     };
-    if (user && profile) fetchTrips();
-  }, [user, profile, isDriver]);
+    if (user && !authLoading) fetchTrips();
+  }, [user, authLoading, isDriver]);
 
   const handleCancelTrip = async (tripId: string) => {
     setCancelling(true);
