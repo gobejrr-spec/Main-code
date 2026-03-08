@@ -1,10 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AIMAG_DATA, AimagInfo } from "@/lib/aimag-data";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { MapPin, Users, Ruler, ArrowLeft, Star, ChevronRight, Search, Compass, Loader2 } from "lucide-react";
+import { MapPin, Users, Ruler, ArrowLeft, Star, ChevronRight, Search, Compass } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -12,44 +10,8 @@ const Explore: React.FC = () => {
   const { t } = useLanguage();
   const [selected, setSelected] = useState<AimagInfo | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [aimagList, setAimagList] = useState<AimagInfo[]>(AIMAG_DATA);
-  const [loadingData, setLoadingData] = useState(true);
 
-  useEffect(() => {
-    const fetchAimags = async () => {
-      try {
-        const snap = await getDocs(collection(db, "aimags"));
-        if (snap.empty) {
-          setAimagList(AIMAG_DATA);
-        } else {
-          const firestoreMap = new Map<string, any>();
-          snap.docs.forEach(d => firestoreMap.set(d.id, d.data()));
-
-          const merged = AIMAG_DATA.map(a => {
-            const fsData = firestoreMap.get(a.name);
-            return fsData ? { ...a, ...fsData } : a;
-          });
-
-          // Add extras from Firestore
-          firestoreMap.forEach((val, key) => {
-            if (!AIMAG_DATA.find(a => a.name === key)) {
-              merged.push(val as AimagInfo);
-            }
-          });
-
-          setAimagList(merged);
-        }
-      } catch (err) {
-        console.error("Aimag fetch error:", err);
-        setAimagList(AIMAG_DATA);
-      } finally {
-        setLoadingData(false);
-      }
-    };
-    fetchAimags();
-  }, []);
-
-  const filtered = aimagList.filter((a) =>
+  const filtered = AIMAG_DATA.filter((a) =>
     a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     a.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
