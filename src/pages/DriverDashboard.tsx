@@ -289,9 +289,14 @@ const DriverDashboard: React.FC = () => {
             <p className="text-muted-foreground max-w-md mx-auto mb-4">
               Таны бичиг баримтууд амжилттай илгээгдсэн. Админ шалгаж баталгаажуулсны дараа та аялал оруулах боломжтой болно.
             </p>
-            <div className="inline-flex items-center gap-2 bg-warning/10 text-warning text-sm font-medium px-4 py-2 rounded-full">
+            <div className="inline-flex items-center gap-2 bg-warning/10 text-warning text-sm font-medium px-4 py-2 rounded-full mb-4">
               <Loader2 className="h-4 w-4 animate-spin" />
               Хянагдаж байна...
+            </div>
+            <div>
+              <Button variant="outline" size="sm" onClick={() => setHasSubmitted(false)}>
+                Дахин засах
+              </Button>
             </div>
           </div>
         )}
