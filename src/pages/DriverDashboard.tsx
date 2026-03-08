@@ -78,7 +78,8 @@ const DriverDashboard: React.FC = () => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [verificationStatus, setVerificationStatus] = useState<string>("pending");
+  const [verificationStatus, setVerificationStatus] = useState<string>("none");
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
   // Trip form state
   const [tripFrom, setTripFrom] = useState("");
