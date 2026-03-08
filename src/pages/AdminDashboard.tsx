@@ -79,7 +79,7 @@ const AdminDashboard: React.FC = () => {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"users" | "drivers" | "alltrips" | "pendingtrips" | "complaints">("users");
   const [expandedDriver, setExpandedDriver] = useState<string | null>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; type: "user" | "driver" } | null>(null);
   const [photoModal, setPhotoModal] = useState<{ url: string; label: string } | null>(null);
 
   const fetchData = useCallback(async () => {
@@ -191,12 +191,37 @@ const AdminDashboard: React.FC = () => {
     setActionLoading(driverId);
     try {
       await updateDoc(doc(db, "drivers", driverId), { verificationStatus: status });
+      const driver = allDrivers.find(d => d.id === driverId);
+      if (driver && status === "approved") {
+        await updateDoc(doc(db, "users", driver.userId), { role: "driver" });
+        setAllUsers(prev => prev.map(u => u.id === driver.userId ? { ...u, role: "driver" } : u));
+      }
       setAllDrivers(prev => prev.map(d => d.id === driverId ? { ...d, verificationStatus: status } : d));
       toast.success(status === "approved" ? "Жолооч зөвшөөрөгдлөө!" : "Жолооч татгалзсан");
     } catch (err) {
       console.error(err);
       toast.error("Алдаа гарлаа");
     } finally { setActionLoading(null); }
+  };
+
+  const handleDeleteDriver = async (driverId: string) => {
+    setActionLoading(driverId);
+    try {
+      const driver = allDrivers.find(d => d.id === driverId);
+      await deleteDoc(doc(db, "drivers", driverId));
+      if (driver) {
+        await updateDoc(doc(db, "users", driver.userId), { role: "passenger" });
+        setAllUsers(prev => prev.map(u => u.id === driver.userId ? { ...u, role: "passenger" } : u));
+      }
+      setAllDrivers(prev => prev.filter(d => d.id !== driverId));
+      toast.success("Жолоочийн бүртгэл устгагдлаа");
+    } catch (err) {
+      console.error(err);
+      toast.error("Устгах амжилтгүй");
+    } finally {
+      setActionLoading(null);
+      setDeleteConfirm(null);
+    }
   };
 
   const handleTripAction = async (tripId: string, status: string) => {
@@ -390,7 +415,7 @@ const AdminDashboard: React.FC = () => {
                           size="sm"
                           variant="outline"
                           className="text-xs text-destructive border-destructive/30 hover:bg-destructive/10"
-                          onClick={() => setDeleteConfirm({ id: u.id, name: u.name || u.email })}
+                          onClick={() => setDeleteConfirm({ id: u.id, name: u.name || u.email, type: "user" })}
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>
@@ -454,6 +479,15 @@ const AdminDashboard: React.FC = () => {
                               Дахин зөвшөөрөх
                             </Button>
                           )}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-xs text-destructive border-destructive/30 hover:bg-destructive/10"
+                            disabled={actionLoading === d.id}
+                            onClick={() => setDeleteConfirm({ id: d.id, name: d.userLastName ? `${d.userLastName} ${d.userName}` : d.userName || d.userId, type: "driver" })}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
                         </div>
                       </div>
 
@@ -670,9 +704,9 @@ const AdminDashboard: React.FC = () => {
       <Dialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Хэрэглэгч устгах</DialogTitle>
+            <DialogTitle>{deleteConfirm?.type === "driver" ? "Жолоочийн бүртгэл устгах" : "Хэрэглэгч устгах"}</DialogTitle>
             <DialogDescription>
-              "{deleteConfirm?.name}" хэрэглэгчийг устгахдаа итгэлтэй байна уу? Энэ үйлдлийг буцаах боломжгүй.
+              "{deleteConfirm?.name}" {deleteConfirm?.type === "driver" ? "жолоочийн бүртгэлийг" : "хэрэглэгчийг"} устгахдаа итгэлтэй байна уу? Энэ үйлдлийг буцаах боломжгүй.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -680,7 +714,7 @@ const AdminDashboard: React.FC = () => {
             <Button
               variant="destructive"
               disabled={actionLoading === deleteConfirm?.id}
-              onClick={() => deleteConfirm && handleDeleteUser(deleteConfirm.id)}
+              onClick={() => deleteConfirm && (deleteConfirm.type === "driver" ? handleDeleteDriver(deleteConfirm.id) : handleDeleteUser(deleteConfirm.id))}
             >
               {actionLoading === deleteConfirm?.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
               Устгах
