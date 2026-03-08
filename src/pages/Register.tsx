@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { createUserWithEmailAndPassword, RecaptchaVerifier, signInWithPhoneNumber, PhoneAuthProvider, linkWithCredential } from "firebase/auth";
+import { createUserWithEmailAndPassword, RecaptchaVerifier, signInWithPhoneNumber, PhoneAuthProvider, linkWithCredential, signOut } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,6 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 declare global {
   interface Window {
     recaptchaVerifier: RecaptchaVerifier;
-    confirmationResult: any;
   }
 }
 
@@ -38,7 +37,7 @@ const Register: React.FC = () => {
   const [otpCode, setOtpCode] = useState("");
   const [sendingOtp, setSendingOtp] = useState(false);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
-  const [confirmationResult, setConfirmationResult] = useState<any>(null);
+  const [verificationId, setVerificationId] = useState<string>("");
   const recaptchaRef = useRef<HTMLDivElement>(null);
 
   const update = (field: string, value: string) => setForm((prev) => ({ ...prev, [field]: value }));
@@ -85,7 +84,9 @@ const Register: React.FC = () => {
       setupRecaptcha();
       const phoneNumber = formatPhone(form.phone);
       const result = await signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier);
-      setConfirmationResult(result);
+      setVerificationId(result.verificationId);
+      // Sign out the phone-auth session immediately so it doesn't interfere
+      await signOut(auth);
       setStep("otp");
       toast.success("OTP код илгээгдлээ!");
     } catch (err: any) {
@@ -97,7 +98,6 @@ const Register: React.FC = () => {
       } else {
         toast.error("OTP илгээхэд алдаа гарлаа. Firebase Console → Authentication → Phone sign-in идэвхжүүлнэ үү.");
       }
-      // Reset recaptcha
       if (window.recaptchaVerifier) {
         window.recaptchaVerifier.clear();
         window.recaptchaVerifier = undefined as any;
@@ -114,20 +114,20 @@ const Register: React.FC = () => {
     }
     setVerifyingOtp(true);
     try {
-      // Verify OTP
-      const credential = PhoneAuthProvider.credential(confirmationResult.verificationId, otpCode);
+      // Just verify the OTP is valid by creating credential (doesn't sign in)
+      const phoneCredential = PhoneAuthProvider.credential(verificationId, otpCode);
 
-      // Create email/password account
+      // Create the actual account with email/password
       const cred = await createUserWithEmailAndPassword(auth, form.email, form.password);
 
-      // Link phone credential
+      // Link phone to the account
       try {
-        await linkWithCredential(cred.user, credential);
+        await linkWithCredential(cred.user, phoneCredential);
       } catch (linkErr) {
         console.warn("Phone link skipped:", linkErr);
       }
 
-      // Save user profile
+      // Save user profile to Firestore
       await setDoc(doc(db, "users", cred.user.uid), {
         name: form.name,
         phone: form.phone,
@@ -145,6 +145,7 @@ const Register: React.FC = () => {
       }
 
       toast.success("Бүртгэл амжилттай!");
+      // Navigate based on role
       navigate(form.role === "driver" ? "/driver" : "/passenger");
     } catch (err: any) {
       console.error("Verify error:", err);
@@ -255,7 +256,6 @@ const Register: React.FC = () => {
             </p>
           </form>
         ) : (
-          /* OTP Verification Step */
           <div className="glass-card-elevated rounded-2xl p-8 space-y-6">
             <div className="text-center">
               <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
@@ -301,7 +301,6 @@ const Register: React.FC = () => {
         )}
       </div>
 
-      {/* Invisible reCAPTCHA container */}
       <div id="recaptcha-container" ref={recaptchaRef} />
     </div>
   );
