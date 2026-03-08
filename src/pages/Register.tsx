@@ -53,6 +53,14 @@ const Register: React.FC = () => {
       toast.error("Утасны дугаар зөв оруулна уу");
       return;
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      toast.error("Зөв имэйл хаяг оруулна уу");
+      return;
+    }
+    if (form.role === "driver" && !/^[а-яА-ЯөӨүҮёЁ]{2}\d{8}$/.test(form.registerNo)) {
+      toast.error("Регистрийн дугаар буруу байна (2 кирилл үсэг + 8 тоо)");
+      return;
+    }
     if (form.role === "driver" && !/^[а-яА-ЯөӨүҮёЁ\s-]+$/.test(form.name)) {
       toast.error("Жолоочийн нэрийг зөвхөн кирилл үсгээр бичнэ үү");
       return;
