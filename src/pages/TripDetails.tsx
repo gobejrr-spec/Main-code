@@ -7,7 +7,6 @@ import { db } from "@/lib/firebase";
 import { MapPin, Calendar, Clock, Users, User, Car, ArrowLeft, Shield, Loader2, Phone, CreditCard, FileText, Navigation } from "lucide-react";
 import { getDistanceKm } from "@/lib/distance";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import monpayQr from "@/assets/monpay-qr.png";
 
