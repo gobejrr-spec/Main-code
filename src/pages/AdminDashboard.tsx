@@ -652,7 +652,52 @@ const AdminDashboard: React.FC = () => {
             </div>
           )}
 
-          {/* PENDING TRIPS TAB */}
+          {/* BOOKINGS TAB */}
+          {activeTab === "bookings" && (
+            <div>
+              <h2 className="font-heading font-semibold text-xl mb-6 flex items-center gap-2">
+                <CreditCard className="h-5 w-5 text-primary" /> {t("pendingBookings")} ({pendingBookings.length})
+              </h2>
+              {pendingBookings.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle className="h-8 w-8 text-success" />
+                  </div>
+                  <p className="text-muted-foreground font-medium">{t("noPendingBookings")}</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {pendingBookings.map((b) => (
+                    <div key={b.id} className="flex items-center justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
+                          <CreditCard className="h-5 w-5 text-warning" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{b.passengerName}</p>
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                            {b.passengerPhone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{b.passengerPhone}</span>}
+                            <span>{b.tripFrom} → {b.tripTo}</span>
+                            <span>{b.tripDate}</span>
+                            <span>{b.seats} {t("seats")}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" disabled={actionLoading === b.id} onClick={() => handleBookingAction(b.id, "confirmed")}>
+                          {actionLoading === b.id ? <Loader2 className="h-3 w-3 animate-spin" /> : t("confirmPayment")}
+                        </Button>
+                        <Button size="sm" variant="outline" disabled={actionLoading === b.id} onClick={() => handleBookingAction(b.id, "rejected")}>
+                          {t("rejectPayment")}
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {activeTab === "pendingtrips" && (
             <div>
               <h2 className="font-heading font-semibold text-xl mb-6 flex items-center gap-2">
