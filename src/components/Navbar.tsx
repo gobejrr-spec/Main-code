@@ -140,7 +140,7 @@ const Navbar: React.FC = () => {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden fixed inset-x-0 top-16 bottom-0 bg-card/95 backdrop-blur-xl border-t border-border px-4 py-5 space-y-3 animate-fade-in shadow-lg overflow-y-auto z-50">
+        <div className="md:hidden absolute left-0 right-0 top-full bg-card border-t border-border px-4 py-5 space-y-3 animate-fade-in shadow-xl z-50">
           {!user && <Link to="/" className="block text-sm font-medium py-2" onClick={() => setMobileOpen(false)}>{t("home")}</Link>}
           <Link to="/trips" className="block text-sm font-medium py-2" onClick={() => setMobileOpen(false)}>
             {profile?.role === "driver" ? t("myTripsNav") : t("searchTrips")}
