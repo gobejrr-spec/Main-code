@@ -36,10 +36,10 @@ const Footer: React.FC = () => {
                 <MapPin className="h-4 w-4" /> Улаанбаатар, Монгол
               </div>
               <div className="flex items-center gap-2 text-sm text-white/50">
-                <Phone className="h-4 w-4" /> +976 7777 8888
+                <Phone className="h-4 w-4" /> +976 88744721
               </div>
               <div className="flex items-center gap-2 text-sm text-white/50">
-                <Mail className="h-4 w-4" /> info@rural.mn
+                <Mail className="h-4 w-4" /> emongontsetseg0@gmail.com
               </div>
             </div>
           </div>
