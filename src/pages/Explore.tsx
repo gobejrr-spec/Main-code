@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AIMAG_DATA, AimagInfo } from "@/lib/aimag-data";
-import { MapPin, Users, Ruler, ArrowLeft, Star, ChevronRight, Search, Compass } from "lucide-react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { MapPin, Users, Ruler, ArrowLeft, Star, ChevronRight, Search, Compass, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -10,8 +12,26 @@ const Explore: React.FC = () => {
   const { t } = useLanguage();
   const [selected, setSelected] = useState<AimagInfo | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [allAimags, setAllAimags] = useState<AimagInfo[]>(AIMAG_DATA);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = AIMAG_DATA.filter((a) =>
+  useEffect(() => {
+    const fetchAimags = async () => {
+      try {
+        const snap = await getDocs(collection(db, "aimags"));
+        if (!snap.empty) {
+          setAllAimags(snap.docs.map((d) => d.data() as AimagInfo));
+        }
+      } catch (err) {
+        console.error("Fetch aimags error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAimags();
+  }, []);
+
+  const filtered = allAimags.filter((a) =>
     a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     a.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
