@@ -137,6 +137,29 @@ const DriverDashboard: React.FC = () => {
     fetchData();
   }, [user]);
 
+  // Real-time listener for verification status changes
+  useEffect(() => {
+    if (!user) return;
+    const unsubscribe = onSnapshot(doc(db, "drivers", user.uid), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const newStatus = data.verificationStatus || "pending";
+        setVerificationStatus(newStatus);
+        if (data.vehiclePlate) setVehiclePlate(data.vehiclePlate);
+        if (data.licenseNumber) setLicenseNumber(data.licenseNumber);
+        if (data.vehicleType) {
+          const parts = data.vehicleType.split(" ");
+          if (parts.length >= 2) {
+            setSelectedBrand(parts[0]);
+            setSelectedModel(parts.slice(1).join(" "));
+          }
+        }
+        if (data.photos) setPhotoUrls(data.photos);
+      }
+    });
+    return () => unsubscribe();
+  }, [user]);
+
   const isVerified = verificationStatus === "approved";
   const isPending = verificationStatus === "pending" && (Object.keys(photoUrls).length > 0 || (selectedBrand && selectedModel) || licenseNumber);
   const isRejected = verificationStatus === "rejected";
