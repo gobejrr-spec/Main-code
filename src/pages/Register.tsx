@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, ArrowRight, User, Car, Eye, EyeOff, Phone } from "lucide-react";
 import { toast } from "sonner";
-import ruralLogo from "@/assets/rural-logo.png";
+import Logo from "@/components/Logo";
 
 const Register: React.FC = () => {
   const { t, language } = useLanguage();
