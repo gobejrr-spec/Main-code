@@ -13,7 +13,7 @@ const Footer: React.FC = () => {
         <div className="grid md:grid-cols-4 gap-10 mb-12">
           <div className="md:col-span-2">
             <Link to="/" className="flex items-center gap-2 font-heading text-xl font-bold text-white mb-4">
-              <img src={ruralLogo} alt="Rural" className="w-8 h-8 object-contain brightness-0 invert" />
+              <Logo size={28} className="text-white" />
               Rural
             </Link>
             <p className="text-sm text-white/50 max-w-sm leading-relaxed">
