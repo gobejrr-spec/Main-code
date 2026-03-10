@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { MapPin, Phone, Mail } from "lucide-react";
-import ruralLogo from "@/assets/rural-logo.png";
+import Logo from "@/components/Logo";
 
 const Footer: React.FC = () => {
   const { t } = useLanguage();
