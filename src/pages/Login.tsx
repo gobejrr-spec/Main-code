@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
-import ruralLogo from "@/assets/rural-logo.png";
+import Logo from "@/components/Logo";
 
 const Login: React.FC = () => {
   const { t } = useLanguage();
@@ -40,7 +40,7 @@ const Login: React.FC = () => {
 
       <div className="w-full max-w-md relative z-10 animate-fade-in">
         <div className="text-center mb-8">
-          <img src={ruralLogo} alt="Rural" className="w-16 h-16 mx-auto mb-4 object-contain" />
+          <Logo size={64} className="mx-auto mb-4 text-primary" />
           <h1 className="font-heading text-3xl font-bold">{t("loginTitle")}</h1>
           <p className="text-sm text-muted-foreground mt-2">{t("loginSubtitle")}</p>
         </div>
