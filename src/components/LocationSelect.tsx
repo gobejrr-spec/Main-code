@@ -61,7 +61,7 @@ const LocationSelect: React.FC<LocationSelectProps> = ({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="w-full h-11 pl-9 pr-8 rounded-md border border-input bg-background text-sm text-left ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer truncate"
+        className="w-full h-11 pl-9 pr-8 rounded-md border border-input bg-background text-sm text-left ring-offset-background focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer truncate"
       >
         <span className={displayValue ? "text-foreground" : "text-muted-foreground"}>
           {displayValue || placeholder}
@@ -76,7 +76,7 @@ const LocationSelect: React.FC<LocationSelectProps> = ({
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => { setOpen(false); setSelectedAimag(null); setSearch(""); }} />
-          <div className="absolute z-50 mt-1 w-full bg-popover border border-border rounded-lg shadow-lg overflow-hidden animate-fade-in">
+          <div className="absolute z-50 mt-1 w-full bg-popover border border-border rounded-lg shadow-xl overflow-hidden animate-fade-in">
             {/* Search */}
             <div className="p-2 border-b border-border">
               {selectedAimag && (
@@ -93,7 +93,7 @@ const LocationSelect: React.FC<LocationSelectProps> = ({
                 placeholder={selectedAimag ? `${selectedAimag} сумууд хайх...` : "Аймаг хайх..."}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full px-3 py-2 text-sm bg-muted/50 rounded-md border-0 outline-none focus:ring-1 focus:ring-ring"
+                className="w-full px-3 py-2 text-sm bg-muted/50 rounded-md border border-border outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/50"
                 autoFocus
               />
             </div>
