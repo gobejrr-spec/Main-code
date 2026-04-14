@@ -93,7 +93,7 @@ const LocationSelect: React.FC<LocationSelectProps> = ({
                 placeholder={selectedAimag ? `${selectedAimag} сумууд хайх...` : "Аймаг хайх..."}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full px-3 py-2 text-sm bg-muted/50 rounded-md border-0 outline-none focus:ring-1 focus:ring-ring"
+                className="w-full px-3 py-2 text-sm bg-muted/50 rounded-md border border-border outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/50"
                 autoFocus
               />
             </div>
