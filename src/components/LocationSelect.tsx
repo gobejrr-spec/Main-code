@@ -61,7 +61,7 @@ const LocationSelect: React.FC<LocationSelectProps> = ({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="w-full h-11 pl-9 pr-8 rounded-md border border-input bg-background text-sm text-left ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer truncate"
+        className="w-full h-11 pl-9 pr-8 rounded-md border border-input bg-background text-sm text-left ring-offset-background focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer truncate"
       >
         <span className={displayValue ? "text-foreground" : "text-muted-foreground"}>
           {displayValue || placeholder}
