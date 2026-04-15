@@ -38,14 +38,42 @@ function haversineDistance(lat1: number, lng1: number, lat2: number, lng2: numbe
 }
 
 /**
- * Хоёр аймгийн хоорондын ойролцоо замын зай (км)
+ * Байршлын нэрнээс аймгийн нэрийг задлах
+ * "Сум, Аймаг" → "Аймаг", "Аймаг" → "Аймаг"
+ */
+function parseLocation(location: string): { aimag: string; soum: string | null } {
+  if (AIMAG_COORDS[location]) {
+    return { aimag: location, soum: null };
+  }
+  const parts = location.split(", ");
+  if (parts.length === 2) {
+    return { aimag: parts[1], soum: parts[0] };
+  }
+  return { aimag: location, soum: null };
+}
+
+/**
+ * Хоёр байршлын хоорондын ойролцоо замын зай (км)
+ * Аймаг, сум аль алийг нь дэмжинэ ("Сум, Аймаг" формат)
  * Шулуун шугамын зайг 1.35 коэффициентоор үржүүлнэ (замын нугалаа тооцсон)
  */
 export function getDistanceKm(from: string, to: string): number | null {
-  const c1 = AIMAG_COORDS[from];
-  const c2 = AIMAG_COORDS[to];
-  if (!c1 || !c2) return null;
   if (from === to) return 0;
+
+  const loc1 = parseLocation(from);
+  const loc2 = parseLocation(to);
+
+  const c1 = AIMAG_COORDS[loc1.aimag];
+  const c2 = AIMAG_COORDS[loc2.aimag];
+  if (!c1 || !c2) return null;
+
+  // Нэг аймаг доторх сум хоорондын зай
+  if (loc1.aimag === loc2.aimag) {
+    // Аймгийн төвөөс сум руу ~80км, сум хооронд ~100км
+    if (loc1.soum && loc2.soum) return 100;
+    return 80;
+  }
+
   const straight = haversineDistance(c1.lat, c1.lng, c2.lat, c2.lng);
   return Math.round(straight * 1.35);
 }
