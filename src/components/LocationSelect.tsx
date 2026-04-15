@@ -98,7 +98,7 @@ const LocationSelect: React.FC<LocationSelectProps> = ({
               />
             </div>
 
-            <div className="max-h-60 overflow-y-auto">
+            <div className="max-h-80 overflow-y-auto">
               {!selectedAimag ? (
                 <>
                   {/* Clear option */}
