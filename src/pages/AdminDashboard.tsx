@@ -492,7 +492,7 @@ const AdminDashboard: React.FC = () => {
               ) : (
                 <div className="space-y-2">
                   {allUsers.map((u) => (
-                    <div key={u.id} className="flex items-center justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                    <div key={u.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                           <Users className="h-5 w-5 text-primary" />
@@ -508,7 +508,7 @@ const AdminDashboard: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
                         {u.role !== "admin" && (
                           <Button
                             size="sm"
@@ -553,7 +553,7 @@ const AdminDashboard: React.FC = () => {
                 <div className="space-y-3">
                   {allDrivers.map((d) => (
                     <div key={d.id} className="rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors overflow-hidden">
-                      <div className="flex items-center justify-between p-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4">
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                             <Car className="h-5 w-5 text-primary" />
@@ -569,7 +569,7 @@ const AdminDashboard: React.FC = () => {
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                         <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
                           <Button
                             size="sm"
                             variant="ghost"
@@ -693,14 +693,14 @@ const AdminDashboard: React.FC = () => {
               ) : (
                 <div className="space-y-3">
                   {pendingBookings.map((b) => (
-                    <div key={b.id} className="flex items-center justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                    <div key={b.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
                           <CreditCard className="h-5 w-5 text-warning" />
                         </div>
                         <div>
                           <p className="font-medium">{b.passengerName}</p>
-                          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-1">
                             {b.passengerPhone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{b.passengerPhone}</span>}
                             <span>{b.tripFrom} → {b.tripTo}</span>
                             <span>{b.tripDate}</span>
@@ -708,7 +708,7 @@ const AdminDashboard: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2 sm:ml-auto">
                         <Button size="sm" disabled={actionLoading === b.id} onClick={() => handleBookingAction(b.id, "confirmed")}>
                           {actionLoading === b.id ? <Loader2 className="h-3 w-3 animate-spin" /> : t("confirmPayment")}
                         </Button>
@@ -738,7 +738,7 @@ const AdminDashboard: React.FC = () => {
               ) : (
                 <div className="space-y-3">
                   {pendingTrips.map((trip) => (
-                    <div key={trip.id} className="flex items-center justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                     <div key={trip.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
                           <MapPin className="h-5 w-5 text-warning" />
@@ -752,7 +752,7 @@ const AdminDashboard: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="flex gap-2">
+                       <div className="flex flex-wrap gap-2 sm:ml-auto">
                         <Button size="sm" disabled={actionLoading === trip.id} onClick={() => handleTripAction(trip.id, "approved")}>
                           {actionLoading === trip.id ? <Loader2 className="h-3 w-3 animate-spin" /> : t("approve")}
                         </Button>
@@ -778,7 +778,7 @@ const AdminDashboard: React.FC = () => {
               ) : (
                 <div className="space-y-2">
                   {allTrips.map((trip) => (
-                    <div key={trip.id} className="flex items-center justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                    <div key={trip.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
                           <MapPin className="h-5 w-5 text-accent" />
@@ -796,7 +796,7 @@ const AdminDashboard: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2 sm:ml-auto">
                         {(trip.status === "approved" || trip.status === "pending") && (
                           <Button
                             size="sm"
