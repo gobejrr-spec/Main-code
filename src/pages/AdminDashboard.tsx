@@ -752,7 +752,7 @@ const AdminDashboard: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="flex gap-2">
+                       <div className="flex flex-wrap gap-2 sm:ml-auto">
                         <Button size="sm" disabled={actionLoading === trip.id} onClick={() => handleTripAction(trip.id, "approved")}>
                           {actionLoading === trip.id ? <Loader2 className="h-3 w-3 animate-spin" /> : t("approve")}
                         </Button>
