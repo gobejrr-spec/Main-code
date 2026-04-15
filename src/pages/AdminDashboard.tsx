@@ -796,7 +796,7 @@ const AdminDashboard: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2 sm:ml-auto">
                         {(trip.status === "approved" || trip.status === "pending") && (
                           <Button
                             size="sm"
