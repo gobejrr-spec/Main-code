@@ -700,7 +700,7 @@ const AdminDashboard: React.FC = () => {
                         </div>
                         <div>
                           <p className="font-medium">{b.passengerName}</p>
-                          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-1">
                             {b.passengerPhone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{b.passengerPhone}</span>}
                             <span>{b.tripFrom} → {b.tripTo}</span>
                             <span>{b.tripDate}</span>
