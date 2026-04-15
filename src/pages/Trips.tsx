@@ -327,7 +327,7 @@ const Trips: React.FC = () => {
           <p className="text-center text-muted-foreground mb-8 animate-fade-in" style={{ animationDelay: "100ms" }}>
             {t("searchTripsAcross")}
           </p>
-          <div className="glass-card-elevated rounded-2xl p-5 max-w-3xl mx-auto animate-fade-in overflow-hidden" style={{ animationDelay: "200ms" }}>
+          <div className="glass-card-elevated rounded-2xl p-5 max-w-3xl mx-auto animate-fade-in overflow-visible" style={{ animationDelay: "200ms" }}>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <LocationSelect value={searchFrom} onChange={setSearchFrom} placeholder={t("from")} iconColor="text-primary" />
               <LocationSelect value={searchTo} onChange={setSearchTo} placeholder={t("to")} iconColor="text-accent" />
