@@ -553,7 +553,7 @@ const AdminDashboard: React.FC = () => {
                 <div className="space-y-3">
                   {allDrivers.map((d) => (
                     <div key={d.id} className="rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors overflow-hidden">
-                      <div className="flex items-center justify-between p-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4">
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                             <Car className="h-5 w-5 text-primary" />
