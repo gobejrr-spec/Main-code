@@ -76,7 +76,7 @@ const LocationSelect: React.FC<LocationSelectProps> = ({
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => { setOpen(false); setSelectedAimag(null); setSearch(""); }} />
-          <div className="absolute z-50 mt-1 w-full bg-popover border border-border rounded-lg shadow-xl overflow-hidden animate-fade-in">
+          <div className="absolute z-50 mt-1 w-72 min-w-full bg-popover border border-border rounded-lg shadow-xl overflow-hidden animate-fade-in">
             {/* Search */}
             <div className="p-2 border-b border-border">
               {selectedAimag && (
