@@ -29,14 +29,18 @@ const LocationSelect: React.FC<LocationSelectProps> = ({
   useEffect(() => {
     if (open && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const dropdownHeight = 400;
-      const openAbove = spaceBelow < dropdownHeight && rect.top > spaceBelow;
+      const spaceBelow = window.innerHeight - rect.bottom - 8;
+      const spaceAbove = rect.top - 8;
+      const openAbove = spaceBelow < 200 && spaceAbove > spaceBelow;
+      const availableHeight = openAbove ? spaceAbove : spaceBelow;
 
       setDropdownStyle({
         position: "fixed",
         left: rect.left,
         width: Math.max(rect.width, 288),
+        maxHeight: availableHeight,
+        display: "flex",
+        flexDirection: "column" as const,
         ...(openAbove
           ? { bottom: window.innerHeight - rect.top + 4 }
           : { top: rect.bottom + 4 }),
