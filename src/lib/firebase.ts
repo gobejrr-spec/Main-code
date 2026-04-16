@@ -16,13 +16,13 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// analytics (optional)
+
 let analytics;
 if (typeof window !== "undefined") {
   analytics = getAnalytics(app);
 }
 
-// ✅ ЭНЭ ХОЁР ЧУХАЛ
+
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
