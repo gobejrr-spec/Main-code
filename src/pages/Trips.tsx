@@ -329,8 +329,8 @@ const Trips: React.FC = () => {
           </p>
           <div className="glass-card-elevated rounded-2xl p-5 max-w-3xl mx-auto animate-fade-in overflow-visible" style={{ animationDelay: "200ms" }}>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              <LocationSelect value={searchFrom} onChange={setSearchFrom} placeholder={t("from")} iconColor="text-primary" />
-              <LocationSelect value={searchTo} onChange={setSearchTo} placeholder={t("to")} iconColor="text-accent" />
+              <LocationSelect value={searchFrom} onChange={setSearchFrom} placeholder={t("from")} iconColor="text-primary" preferOpenDownward />
+              <LocationSelect value={searchTo} onChange={setSearchTo} placeholder={t("to")} iconColor="text-accent" preferOpenDownward />
               <div className="relative min-w-0">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input type="date" className="pl-9 h-11 w-full min-h-[44px]" value={searchDate} onChange={(e) => setSearchDate(e.target.value)} />

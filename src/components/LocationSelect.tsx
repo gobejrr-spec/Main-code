@@ -9,6 +9,7 @@ interface LocationSelectProps {
   placeholder: string;
   iconColor?: string;
   className?: string;
+  preferOpenDownward?: boolean;
 }
 
 const LocationSelect: React.FC<LocationSelectProps> = ({
@@ -17,6 +18,7 @@ const LocationSelect: React.FC<LocationSelectProps> = ({
   placeholder,
   iconColor = "text-primary",
   className = "",
+  preferOpenDownward = false,
 }) => {
   const [open, setOpen] = useState(false);
   const [selectedAimag, setSelectedAimag] = useState<string | null>(null);
@@ -31,8 +33,8 @@ const LocationSelect: React.FC<LocationSelectProps> = ({
       const rect = buttonRef.current.getBoundingClientRect();
       const spaceBelow = window.innerHeight - rect.bottom - 8;
       const spaceAbove = rect.top - 8;
-      const openAbove = spaceBelow < 200 && spaceAbove > spaceBelow;
-      const availableHeight = Math.min(openAbove ? spaceAbove : spaceBelow, 320);
+      const shouldOpenAbove = !preferOpenDownward && spaceBelow < 200 && spaceAbove > spaceBelow;
+      const availableHeight = Math.min(shouldOpenAbove ? spaceAbove : Math.max(spaceBelow, 240), 320);
 
       setDropdownStyle({
         position: "fixed",
@@ -41,13 +43,13 @@ const LocationSelect: React.FC<LocationSelectProps> = ({
         maxHeight: availableHeight,
         display: "flex",
         flexDirection: "column" as const,
-        ...(openAbove
+        ...(shouldOpenAbove
           ? { bottom: window.innerHeight - rect.top + 4 }
           : { top: rect.bottom + 4 }),
         zIndex: 9999,
       });
     }
-  }, [open]);
+  }, [open, preferOpenDownward]);
 
   const filteredAimags = useMemo(() => {
     if (!search) return [...AIMAGS];
