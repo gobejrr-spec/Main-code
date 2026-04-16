@@ -32,7 +32,7 @@ const LocationSelect: React.FC<LocationSelectProps> = ({
       const spaceBelow = window.innerHeight - rect.bottom - 8;
       const spaceAbove = rect.top - 8;
       const openAbove = spaceBelow < 200 && spaceAbove > spaceBelow;
-      const availableHeight = openAbove ? spaceAbove : spaceBelow;
+      const availableHeight = Math.min(openAbove ? spaceAbove : spaceBelow, 320);
 
       setDropdownStyle({
         position: "fixed",
